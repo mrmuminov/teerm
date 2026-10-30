@@ -73,6 +73,19 @@ fn read_export_file(path: &std::path::Path) -> Result<transfer::ExportFile, AppE
     transfer::parse_export(&std::fs::read(path)?)
 }
 
+/// Reads and opens an export off the command thread: key derivation is
+/// deliberately slow.
+async fn open_export(
+    path: PathBuf,
+    passphrase: Option<String>,
+) -> Result<transfer::Incoming, AppError> {
+    tauri::async_runtime::spawn_blocking(move || {
+        read_export_file(&path)?.open(passphrase.as_deref())
+    })
+    .await
+    .map_err(|error| AppError::Internal(error.to_string()))?
+}
+
 #[tauri::command]
 pub fn vault_export(
     state: State<'_, AppState>,
@@ -101,12 +114,7 @@ pub async fn vault_import_preview(
     path: PathBuf,
     passphrase: Option<String>,
 ) -> Result<ImportPreview, AppError> {
-    // Key derivation is deliberately slow, so keep it off the command thread.
-    let incoming = tauri::async_runtime::spawn_blocking(move || {
-        read_export_file(&path)?.open(passphrase.as_deref())
-    })
-    .await
-    .map_err(|error| AppError::Internal(error.to_string()))??;
+    let incoming = open_export(path, passphrase).await?;
 
     let vault = state.vault.lock().map_err(|_| vault_lock_error())?;
     Ok(transfer::preview(vault.payload()?, &incoming))
@@ -126,17 +134,13 @@ pub async fn vault_import_apply(
     passphrase: Option<String>,
     mode: ImportMode,
 ) -> Result<ImportResult, AppError> {
-    let incoming = tauri::async_runtime::spawn_blocking(move || {
-        read_export_file(&path)?.open(passphrase.as_deref())
-    })
-    .await
-    .map_err(|error| AppError::Internal(error.to_string()))??;
+    let incoming = open_export(path, passphrase).await?;
 
     let mut vault = state.vault.lock().map_err(|_| vault_lock_error())?;
 
     match mode {
         ImportMode::Merge => {
-            let merge = vault.mutate(|payload| Ok(transfer::merge(payload, &incoming.payload)))?;
+            let merge = vault.mutate(|payload| Ok(transfer::merge(payload, &incoming.payload, incoming.includes_secrets)))?;
             Ok(ImportResult {
                 mode,
                 merge: Some(merge),
@@ -173,15 +177,11 @@ pub async fn vault_create_from_export(
     passphrase: Option<String>,
     password: String,
 ) -> Result<(), AppError> {
-    let incoming = tauri::async_runtime::spawn_blocking(move || {
-        read_export_file(&path)?.open(passphrase.as_deref())
-    })
-    .await
-    .map_err(|error| AppError::Internal(error.to_string()))??;
+    let incoming = open_export(path, passphrase).await?;
 
     let mut vault = state.vault.lock().map_err(|_| vault_lock_error())?;
     vault.create(&password)?;
-    vault.mutate(|payload| Ok(transfer::merge(payload, &incoming.payload)))?;
+    vault.mutate(|payload| Ok(transfer::merge(payload, &incoming.payload, incoming.includes_secrets)))?;
     Ok(())
 }
 

@@ -28,7 +28,7 @@ impl VaultStore {
             .file_name()
             .ok_or_else(|| AppError::Internal("vault path has no file name".into()))?
             .to_os_string();
-        name.push(".pre-import.bak");
+        name.push(format!(".pre-import-{}.bak", chrono::Utc::now().format("%Y%m%dT%H%M%S")));
         let backup = self.path.with_file_name(name);
         fs::copy(&self.path, &backup)?;
         Ok(backup)

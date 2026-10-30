@@ -13,10 +13,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { isDevMock } from "@/lib/env";
+import { MIN_PASSWORD_LENGTH } from "@/lib/password";
 import { errorMessage, ipc, isAppError } from "@/lib/ipc";
 import { useVaultStore } from "@/stores/vault";
-
-const MIN_PASSWORD_LENGTH = 10;
 
 export function RestoreDialog({
   open,

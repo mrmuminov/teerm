@@ -24,7 +24,7 @@ import {
 } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { passwordStrength } from "@/lib/password";
+import { MIN_PASSWORD_LENGTH, passwordStrength } from "@/lib/password";
 import { cn } from "@/lib/utils";
 import { useVaultStore } from "@/stores/vault";
 
@@ -44,10 +44,10 @@ export function OnboardingScreen() {
   }, [clearError]);
 
   const strength = useMemo(() => passwordStrength(password), [password]);
-  const tooShort = password.length > 0 && password.length < 10;
+  const tooShort = password.length > 0 && password.length < MIN_PASSWORD_LENGTH;
   const mismatch = confirmation.length > 0 && password !== confirmation;
   const canSubmit =
-    password.length >= 10 && password === confirmation && acknowledged && !busy;
+    password.length >= MIN_PASSWORD_LENGTH && password === confirmation && acknowledged && !busy;
 
   function handleSubmit(event: FormEvent) {
     event.preventDefault();
@@ -110,7 +110,7 @@ export function OnboardingScreen() {
 
               {tooShort && (
                 <p className="text-xs text-destructive">
-                  Use at least 10 characters.
+                  Use at least {MIN_PASSWORD_LENGTH} characters.
                 </p>
               )}
             </div>

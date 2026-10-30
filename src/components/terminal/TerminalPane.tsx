@@ -16,7 +16,6 @@ import { attachTerminal } from "@/lib/terminal-bus";
 import { cn } from "@/lib/utils";
 import { useSessionsStore, type SessionTab } from "@/stores/sessions";
 import { useSettingsStore } from "@/stores/settings";
-import { useSftpStore } from "@/stores/sftp";
 
 const TERMINAL_THEME: ITheme = {
   background: "#0b0e11",
@@ -264,15 +263,7 @@ export function TerminalPane({
       const key = event.key.toLowerCase();
 
       if (key === "s") {
-        const sessionId = sessionIdRef.current;
-        if (!sessionId) {
-          return true;
-        }
-
-        event.preventDefault();
-        if (!event.repeat) {
-          void useSftpStore.getState().toggle(tab.id, sessionId);
-        }
+        // Handled for the whole window in AppShell.
         return false;
       }
 

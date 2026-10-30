@@ -14,10 +14,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { isDevMock } from "@/lib/env";
+import { MIN_PASSWORD_LENGTH } from "@/lib/password";
 import { errorMessage, ipc, type ExportMode } from "@/lib/ipc";
 import { cn } from "@/lib/utils";
-
-const MIN_PASSPHRASE_LENGTH = 10;
 
 const MODES: { value: ExportMode; title: string; description: string }[] = [
   {
@@ -52,7 +51,7 @@ export function ExportDialog({
   const canSubmit =
     !busy &&
     (!full ||
-      (passphrase.length >= MIN_PASSPHRASE_LENGTH &&
+      (passphrase.length >= MIN_PASSWORD_LENGTH &&
         passphrase === confirmation));
 
   function handleOpenChange(value: boolean) {
@@ -152,9 +151,9 @@ export function ExportDialog({
               onEnter={() => void submit()}
             />
             {passphrase.length > 0 &&
-              passphrase.length < MIN_PASSPHRASE_LENGTH && (
+              passphrase.length < MIN_PASSWORD_LENGTH && (
                 <p className="text-[11px] text-destructive">
-                  Use at least {MIN_PASSPHRASE_LENGTH} characters.
+                  Use at least {MIN_PASSWORD_LENGTH} characters.
                 </p>
               )}
             {mismatch && (

@@ -11,7 +11,7 @@ use crate::error::AppError;
 
 use super::crypto::{self, VaultEnvelope, VAULT_FORMAT};
 use super::manager::validate_master_password;
-use super::model::{VaultPayload, SCHEMA_VERSION};
+use super::model::{KnownHost, VaultPayload, SCHEMA_VERSION};
 
 pub const METADATA_FORMAT: &str = "teerm-export-metadata";
 const METADATA_VERSION: u32 = 1;
@@ -86,6 +86,17 @@ fn live_only(mut payload: VaultPayload) -> VaultPayload {
     payload
 }
 
+/// Removes every Secret in place, leaving public material and structure.
+fn without_secrets(payload: &mut VaultPayload) {
+    for host in &mut payload.hosts {
+        host.password = None;
+    }
+    for key in &mut payload.keys {
+        key.private_key = String::new();
+        key.passphrase = None;
+    }
+}
+
 pub fn counts(payload: &VaultPayload) -> EntityCounts {
     EntityCounts {
         hosts: payload.hosts.len(),
@@ -111,13 +122,7 @@ pub fn export_full(payload: &VaultPayload, passphrase: &str) -> Result<Vec<u8>, 
 /// Serializes a Metadata-only Export: plain JSON with every Secret removed.
 pub fn export_metadata(payload: &VaultPayload) -> Result<Vec<u8>, AppError> {
     let mut stripped = live_only(payload.clone());
-    for host in &mut stripped.hosts {
-        host.password = None;
-    }
-    for key in &mut stripped.keys {
-        key.private_key = String::new();
-        key.passphrase = None;
-    }
+    without_secrets(&mut stripped);
 
     Ok(serde_json::to_vec_pretty(&MetadataExport {
         format: METADATA_FORMAT.into(),
@@ -174,7 +179,7 @@ impl ExportFile {
     }
 }
 
-enum Outcome {
+enum RowOutcome {
     Add,
     Skip,
     Duplicate,
@@ -188,28 +193,56 @@ fn classify<T: Serialize>(
     incoming: &[T],
     id: fn(&T) -> Uuid,
     remap: &mut HashMap<Uuid, Uuid>,
-) -> Vec<Outcome> {
+) -> Vec<RowOutcome> {
     incoming
         .iter()
         .map(|row| {
             let Some(current) = existing.iter().find(|current| id(current) == id(row)) else {
-                return Outcome::Add;
+                return RowOutcome::Add;
             };
             if serde_json::to_value(current).ok() == serde_json::to_value(row).ok() {
-                Outcome::Skip
+                RowOutcome::Skip
             } else {
                 remap.insert(id(row), Uuid::now_v7());
-                Outcome::Duplicate
+                RowOutcome::Duplicate
             }
         })
         .collect()
 }
 
-fn tally(outcomes: &[Outcome]) -> (usize, usize, usize) {
+/// A Known Host is identified by where it lives and which kind of key it
+/// holds, so the same endpoint is never added twice. An existing entry always
+/// wins: an incoming key that disagrees with it is not silently trusted.
+fn classify_known_hosts(
+    existing: &[KnownHost],
+    incoming: &[KnownHost],
+    remap: &mut HashMap<Uuid, Uuid>,
+) -> Vec<RowOutcome> {
+    incoming
+        .iter()
+        .map(|row| {
+            let same_endpoint = existing.iter().any(|current| {
+                current.address == row.address
+                    && current.port == row.port
+                    && current.key_type == row.key_type
+            });
+            if same_endpoint {
+                RowOutcome::Skip
+            } else if existing.iter().any(|current| current.id == row.id) {
+                remap.insert(row.id, Uuid::now_v7());
+                RowOutcome::Duplicate
+            } else {
+                RowOutcome::Add
+            }
+        })
+        .collect()
+}
+
+fn tally(outcomes: &[RowOutcome]) -> (usize, usize, usize) {
     outcomes.iter().fold((0, 0, 0), |(add, skip, dup), outcome| match outcome {
-        Outcome::Add => (add + 1, skip, dup),
-        Outcome::Skip => (add, skip + 1, dup),
-        Outcome::Duplicate => (add, skip, dup + 1),
+        RowOutcome::Add => (add + 1, skip, dup),
+        RowOutcome::Skip => (add, skip + 1, dup),
+        RowOutcome::Duplicate => (add, skip, dup + 1),
     })
 }
 
@@ -224,34 +257,45 @@ fn relabel(label: &str) -> String {
 /// Merges `incoming` into `current` by UUID. Identical rows are skipped;
 /// conflicting rows are kept both, the incoming one under a new UUID and an
 /// " (imported)" label, with references remapped.
-pub fn merge(current: &mut VaultPayload, incoming: &VaultPayload) -> MergeOutcome {
+///
+/// `compare_secrets` is false for a Metadata-only Export: its rows have no
+/// Secrets, so they are compared against the existing rows without theirs.
+/// Otherwise every Host and Key would look edited and be duplicated.
+pub fn merge(
+    current: &mut VaultPayload,
+    incoming: &VaultPayload,
+    compare_secrets: bool,
+) -> MergeOutcome {
+    let public_view = (!compare_secrets).then(|| {
+        let mut view = current.clone();
+        without_secrets(&mut view);
+        view
+    });
+    let existing = public_view.as_ref().unwrap_or(current);
+
     let mut remap = HashMap::new();
     let groups = classify(&current.groups, &incoming.groups, |row| row.id, &mut remap);
     let tags = classify(&current.tags, &incoming.tags, |row| row.id, &mut remap);
-    let keys = classify(&current.keys, &incoming.keys, |row| row.id, &mut remap);
-    let hosts = classify(&current.hosts, &incoming.hosts, |row| row.id, &mut remap);
+    let keys = classify(&existing.keys, &incoming.keys, |row| row.id, &mut remap);
+    let hosts = classify(&existing.hosts, &incoming.hosts, |row| row.id, &mut remap);
     let forwards = classify(
         &current.port_forwards,
         &incoming.port_forwards,
         |row| row.id,
         &mut remap,
     );
-    let known_hosts = classify(
-        &current.known_hosts,
-        &incoming.known_hosts,
-        |row| row.id,
-        &mut remap,
-    );
+    let known_hosts =
+        classify_known_hosts(&current.known_hosts, &incoming.known_hosts, &mut remap);
 
     for (row, outcome) in incoming.groups.iter().zip(&groups) {
         let mut row = row.clone();
         match outcome {
-            Outcome::Skip => continue,
-            Outcome::Duplicate => {
+            RowOutcome::Skip => continue,
+            RowOutcome::Duplicate => {
                 row.id = mapped(&remap, row.id);
                 row.name = relabel(&row.name);
             }
-            Outcome::Add => {}
+            RowOutcome::Add => {}
         }
         row.parent_id = row.parent_id.map(|parent| mapped(&remap, parent));
         current.groups.push(row);
@@ -260,12 +304,12 @@ pub fn merge(current: &mut VaultPayload, incoming: &VaultPayload) -> MergeOutcom
     for (row, outcome) in incoming.tags.iter().zip(&tags) {
         let mut row = row.clone();
         match outcome {
-            Outcome::Skip => continue,
-            Outcome::Duplicate => {
+            RowOutcome::Skip => continue,
+            RowOutcome::Duplicate => {
                 row.id = mapped(&remap, row.id);
                 row.name = relabel(&row.name);
             }
-            Outcome::Add => {}
+            RowOutcome::Add => {}
         }
         current.tags.push(row);
     }
@@ -273,12 +317,12 @@ pub fn merge(current: &mut VaultPayload, incoming: &VaultPayload) -> MergeOutcom
     for (row, outcome) in incoming.keys.iter().zip(&keys) {
         let mut row = row.clone();
         match outcome {
-            Outcome::Skip => continue,
-            Outcome::Duplicate => {
+            RowOutcome::Skip => continue,
+            RowOutcome::Duplicate => {
                 row.id = mapped(&remap, row.id);
                 row.name = relabel(&row.name);
             }
-            Outcome::Add => {}
+            RowOutcome::Add => {}
         }
         current.keys.push(row);
     }
@@ -286,12 +330,12 @@ pub fn merge(current: &mut VaultPayload, incoming: &VaultPayload) -> MergeOutcom
     for (row, outcome) in incoming.hosts.iter().zip(&hosts) {
         let mut row = row.clone();
         match outcome {
-            Outcome::Skip => continue,
-            Outcome::Duplicate => {
+            RowOutcome::Skip => continue,
+            RowOutcome::Duplicate => {
                 row.id = mapped(&remap, row.id);
                 row.label = relabel(&row.label);
             }
-            Outcome::Add => {}
+            RowOutcome::Add => {}
         }
         row.group_id = row.group_id.map(|group| mapped(&remap, group));
         row.key_id = row.key_id.map(|key| mapped(&remap, key));
@@ -303,9 +347,9 @@ pub fn merge(current: &mut VaultPayload, incoming: &VaultPayload) -> MergeOutcom
     for (row, outcome) in incoming.port_forwards.iter().zip(&forwards) {
         let mut row = row.clone();
         match outcome {
-            Outcome::Skip => continue,
-            Outcome::Duplicate => row.id = mapped(&remap, row.id),
-            Outcome::Add => {}
+            RowOutcome::Skip => continue,
+            RowOutcome::Duplicate => row.id = mapped(&remap, row.id),
+            RowOutcome::Add => {}
         }
         row.host_id = mapped(&remap, row.host_id);
         current.port_forwards.push(row);
@@ -314,9 +358,9 @@ pub fn merge(current: &mut VaultPayload, incoming: &VaultPayload) -> MergeOutcom
     for (row, outcome) in incoming.known_hosts.iter().zip(&known_hosts) {
         let mut row = row.clone();
         match outcome {
-            Outcome::Skip => continue,
-            Outcome::Duplicate => row.id = mapped(&remap, row.id),
-            Outcome::Add => {}
+            RowOutcome::Skip => continue,
+            RowOutcome::Duplicate => row.id = mapped(&remap, row.id),
+            RowOutcome::Add => {}
         }
         current.known_hosts.push(row);
     }
@@ -362,7 +406,7 @@ pub fn preview(current: &VaultPayload, incoming: &Incoming) -> ImportPreview {
         includes_secrets: incoming.includes_secrets,
         can_replace: incoming.includes_secrets,
         incoming: counts(&incoming.payload),
-        merge: merge(&mut scratch, &incoming.payload),
+        merge: merge(&mut scratch, &incoming.payload, incoming.includes_secrets),
     }
 }
 
@@ -523,7 +567,7 @@ mod tests {
         incoming.hosts.push(shared);
         incoming.hosts.push(host("fresh"));
 
-        let outcome = merge(&mut current, &incoming);
+        let outcome = merge(&mut current, &incoming, true);
 
         assert_eq!(current.hosts.len(), 2);
         assert_eq!(outcome.added.hosts, 1);
@@ -552,7 +596,7 @@ mod tests {
         incoming.hosts.push(changed_host);
         incoming.port_forwards.push(original_forward);
 
-        let outcome = merge(&mut current, &incoming);
+        let outcome = merge(&mut current, &incoming, true);
 
         assert_eq!(outcome.duplicated.groups, 1);
         assert_eq!(outcome.duplicated.hosts, 1);
@@ -567,6 +611,76 @@ mod tests {
         assert_eq!(current.port_forwards[0].host_id, imported_host.id);
         // The existing rows are untouched.
         assert_eq!(current.hosts[0].label, "web");
+    }
+
+    #[test]
+    fn merging_a_metadata_export_back_into_its_vault_changes_nothing() {
+        let mut current = VaultPayload::new();
+        current.keys.push(key("laptop"));
+        let mut web = host("web");
+        web.key_id = Some(current.keys[0].id);
+        current.hosts.push(web);
+
+        let exported = export_metadata(&current).unwrap();
+        let incoming = parse_export(&exported).unwrap().open(None).unwrap();
+        assert!(!incoming.includes_secrets);
+
+        let outcome = merge(&mut current, &incoming.payload, incoming.includes_secrets);
+
+        assert_eq!(outcome.skipped.hosts, 1);
+        assert_eq!(outcome.skipped.keys, 1);
+        assert_eq!(outcome.duplicated, EntityCounts::default());
+        assert_eq!(current.hosts.len(), 1);
+        assert_eq!(current.hosts[0].password.as_deref(), Some("hunter2-secret"));
+        assert_eq!(current.keys[0].private_key, "PRIVATE-KEY-MATERIAL");
+    }
+
+    #[test]
+    fn a_metadata_export_still_duplicates_a_genuinely_edited_host() {
+        let mut current = VaultPayload::new();
+        let original = host("web");
+        current.hosts.push(original.clone());
+
+        let mut edited = original;
+        edited.address = "other.example.com".into();
+        let mut remote = VaultPayload::new();
+        remote.hosts.push(edited);
+        let exported = export_metadata(&remote).unwrap();
+        let incoming = parse_export(&exported).unwrap().open(None).unwrap();
+
+        let outcome = merge(&mut current, &incoming.payload, false);
+
+        assert_eq!(outcome.duplicated.hosts, 1);
+        assert_eq!(current.hosts.len(), 2);
+    }
+
+    fn known_host(address: &str, fingerprint: &str) -> KnownHost {
+        KnownHost {
+            id: Uuid::now_v7(),
+            address: address.into(),
+            port: 22,
+            key_type: "ssh-ed25519".into(),
+            public_key: "ssh-ed25519 AAAA".into(),
+            fingerprint: fingerprint.into(),
+            added_at: Utc::now(),
+            deleted_at: None,
+        }
+    }
+
+    #[test]
+    fn merge_never_adds_a_second_known_host_for_the_same_endpoint() {
+        let mut current = VaultPayload::new();
+        current.known_hosts.push(known_host("example.com", "SHA256:trusted"));
+        let mut incoming = VaultPayload::new();
+        incoming.known_hosts.push(known_host("example.com", "SHA256:different"));
+        incoming.known_hosts.push(known_host("other.com", "SHA256:new"));
+
+        let outcome = merge(&mut current, &incoming, true);
+
+        assert_eq!(outcome.skipped.known_hosts, 1);
+        assert_eq!(outcome.added.known_hosts, 1);
+        assert_eq!(current.known_hosts.len(), 2);
+        assert_eq!(current.known_hosts[0].fingerprint, "SHA256:trusted");
     }
 
     #[test]

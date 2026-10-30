@@ -19,7 +19,7 @@ import { useInventoryStore } from "@/stores/inventory";
 import { useSessionEventBridge, useSessionsStore } from "@/stores/sessions";
 import { useSettingsStore } from "@/stores/settings";
 import { useForwardEventBridge } from "@/stores/forwards";
-import { useSftpEventBridge } from "@/stores/sftp";
+import { useSftpEventBridge, useSftpStore } from "@/stores/sftp";
 import { useUiStore } from "@/stores/ui";
 
 const HOST_SEARCH_ID = "sidebar-search";
@@ -70,6 +70,20 @@ export function AppShell() {
       if (next) {
         event.preventDefault();
         setSection(next);
+        return;
+      }
+
+      if (event.shiftKey && event.key.toLowerCase() === "s") {
+        const { activeSessionId: sessionTabId } = useUiStore.getState();
+        const sessionTab = useSessionsStore
+          .getState()
+          .tabs.find((tab) => tab.id === sessionTabId);
+        if (sessionTab?.sshSessionId) {
+          event.preventDefault();
+          void useSftpStore
+            .getState()
+            .toggle(sessionTab.id, sessionTab.sshSessionId);
+        }
         return;
       }
 
