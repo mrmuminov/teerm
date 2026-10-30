@@ -453,6 +453,7 @@ export function Sidebar() {
                   ? setKeyQuery(event.target.value)
                   : setKnownQuery(event.target.value)
             }
+            id="sidebar-search"
             placeholder={meta.search}
             aria-label={meta.search}
             className="h-8 w-full rounded-md border border-sidebar-border bg-background/50 pr-2 pl-7 text-[12px] outline-none transition-colors placeholder:text-muted-foreground/70 focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30"

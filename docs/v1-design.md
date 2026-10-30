@@ -315,7 +315,7 @@ Split panes, Snippets, Mosh/Telnet/Serial, mobile, accounts/sync, AI, Jump Host 
 5. ✅ SFTP browser and transfer queue.
 6. ✅ Local and remote Port Forwards with status.
 7. ✅ Export/import (merge + replace) from Settings. The Unlock-screen "Import a vault" flow (restore into a new device) is still open.
-8. Polish: themes, shortcuts, tests, packaging.
+8. Polish: themes, tests, packaging. Shortcuts from §4.4 are in (`AppShell.tsx`, terminal key handler).
 
 ## 7. Resolved decisions
 

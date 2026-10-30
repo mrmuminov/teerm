@@ -22,6 +22,8 @@ import { useForwardEventBridge } from "@/stores/forwards";
 import { useSftpEventBridge } from "@/stores/sftp";
 import { useUiStore } from "@/stores/ui";
 
+const HOST_SEARCH_ID = "sidebar-search";
+
 export function AppShell() {
   useSessionEventBridge();
   useSftpEventBridge();
@@ -53,7 +55,7 @@ export function AppShell() {
 
   useEffect(() => {
     function handleKeyDown(event: KeyboardEvent) {
-      if (!(event.metaKey || event.ctrlKey)) {
+      if (!(event.metaKey || event.ctrlKey) || event.altKey) {
         return;
       }
 
@@ -68,6 +70,66 @@ export function AppShell() {
       if (next) {
         event.preventDefault();
         setSection(next);
+        return;
+      }
+
+      if (event.shiftKey && !["+", "_"].includes(event.key)) {
+        return;
+      }
+
+      const key = event.key.toLowerCase();
+      const target = event.target as HTMLElement | null;
+      const typingInField =
+        !!target &&
+        (target.tagName === "INPUT" ||
+          target.tagName === "TEXTAREA" ||
+          target.isContentEditable) &&
+        !target.classList.contains("xterm-helper-textarea");
+
+      // Keep the browser-style editing keys of ordinary fields intact.
+      if (typingInField && key !== "k") {
+        return;
+      }
+
+      const ui = useUiStore.getState();
+      const sessions = useSessionsStore.getState();
+
+      if (key === "k") {
+        event.preventDefault();
+        setSection("hosts");
+        requestAnimationFrame(() =>
+          document.getElementById(HOST_SEARCH_ID)?.focus(),
+        );
+      } else if (key === "w") {
+        if (ui.activeSessionId) {
+          event.preventDefault();
+          void sessions.closeSession(ui.activeSessionId);
+        }
+      } else if (key === "t") {
+        const current = sessions.tabs.find(
+          (tab) => tab.id === ui.activeSessionId,
+        );
+        const host = useInventoryStore
+          .getState()
+          .hosts.find((item) => item.id === (current?.hostId ?? ui.selectedHostId));
+        if (host) {
+          event.preventDefault();
+          setSection("hosts");
+          void sessions.connect(host);
+        }
+      } else if (key === "+" || key === "=" || key === "-" || key === "_") {
+        const settings = useSettingsStore.getState();
+        if (settings.settings) {
+          event.preventDefault();
+          const delta = key === "-" || key === "_" ? -1 : 1;
+          const fontSize = Math.min(
+            36,
+            Math.max(8, settings.settings.terminal.font_size + delta),
+          );
+          void settings.update({
+            terminal: { ...settings.settings.terminal, font_size: fontSize },
+          });
+        }
       }
     }
 

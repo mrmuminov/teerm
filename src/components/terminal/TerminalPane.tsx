@@ -237,6 +237,15 @@ export function TerminalPane({
         return true;
       }
 
+      // App-level shortcuts handled in AppShell must not reach the shell.
+      if (
+        (event.ctrlKey || event.metaKey) &&
+        !event.altKey &&
+        ["k", "t", "w", "+", "=", "-", "_"].includes(event.key.toLowerCase())
+      ) {
+        return false;
+      }
+
       if (
         (event.ctrlKey || event.metaKey) &&
         !event.shiftKey &&
