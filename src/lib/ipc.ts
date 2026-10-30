@@ -132,6 +132,37 @@ export type PortForward = {
   updated_at: string;
 };
 
+export type ExportMode = "full" | "metadata";
+export type ImportMode = "merge" | "replace";
+
+export type EntityCounts = {
+  hosts: number;
+  groups: number;
+  tags: number;
+  keys: number;
+  port_forwards: number;
+  known_hosts: number;
+};
+
+export type MergeOutcome = {
+  added: EntityCounts;
+  skipped: EntityCounts;
+  duplicated: EntityCounts;
+};
+
+export type ImportPreview = {
+  includes_secrets: boolean;
+  can_replace: boolean;
+  incoming: EntityCounts;
+  merge: MergeOutcome;
+};
+
+export type ImportResult = {
+  mode: ImportMode;
+  merge: MergeOutcome | null;
+  backup_path: string | null;
+};
+
 export type ForwardState = "running" | "stopped" | "failed";
 
 export type ForwardStatus = {
@@ -237,6 +268,15 @@ export const ipc = {
   vaultLock: () => invoke<void>("vault_lock"),
   vaultChangePassword: (current: string, next: string) =>
     invoke<void>("vault_change_password", { current, new: next }),
+  vaultExport: (path: string, mode: ExportMode, passphrase: string | null) =>
+    invoke<void>("vault_export", { path, mode, passphrase }),
+  vaultImportPreview: (path: string, passphrase: string | null) =>
+    invoke<ImportPreview>("vault_import_preview", { path, passphrase }),
+  vaultImportApply: (
+    path: string,
+    passphrase: string | null,
+    mode: ImportMode,
+  ) => invoke<ImportResult>("vault_import_apply", { path, passphrase, mode }),
   settingsGet: () => invoke<Settings>("settings_get"),
   settingsUpdate: (settings: Settings) =>
     invoke<Settings>("settings_update", { settings }),

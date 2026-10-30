@@ -16,6 +16,7 @@ use crate::ssh::{self, ConnectProfile, KnownKeySnapshot, OpenedSession};
 use crate::state::AppState;
 use crate::vault::manager::VaultStatus;
 use crate::vault::model::PortForward;
+use crate::vault::transfer::{self, ExportMode, ImportMode, ImportPreview, MergeOutcome};
 
 fn vault_lock_error() -> AppError {
     AppError::Internal("vault state is unavailable".into())
@@ -61,6 +62,106 @@ pub fn vault_change_password(
 ) -> Result<(), AppError> {
     let mut vault = state.vault.lock().map_err(|_| vault_lock_error())?;
     vault.change_password(&current, &new)
+}
+
+const MAX_EXPORT_FILE_BYTES: u64 = 64 * 1024 * 1024;
+
+fn read_export_file(path: &std::path::Path) -> Result<transfer::ExportFile, AppError> {
+    if std::fs::metadata(path)?.len() > MAX_EXPORT_FILE_BYTES {
+        return Err(AppError::InvalidInput("the export file is too large".into()));
+    }
+    transfer::parse_export(&std::fs::read(path)?)
+}
+
+#[tauri::command]
+pub fn vault_export(
+    state: State<'_, AppState>,
+    path: PathBuf,
+    mode: ExportMode,
+    passphrase: Option<String>,
+) -> Result<(), AppError> {
+    let bytes = {
+        let vault = state.vault.lock().map_err(|_| vault_lock_error())?;
+        let payload = vault.payload()?;
+        match mode {
+            ExportMode::Full => transfer::export_full(
+                payload,
+                passphrase.as_deref().ok_or(AppError::PassphraseRequired)?,
+            )?,
+            ExportMode::Metadata => transfer::export_metadata(payload)?,
+        }
+    };
+
+    crate::fsutil::atomic_write(&path, &bytes)
+}
+
+#[tauri::command]
+pub async fn vault_import_preview(
+    state: State<'_, AppState>,
+    path: PathBuf,
+    passphrase: Option<String>,
+) -> Result<ImportPreview, AppError> {
+    // Key derivation is deliberately slow, so keep it off the command thread.
+    let incoming = tauri::async_runtime::spawn_blocking(move || {
+        read_export_file(&path)?.open(passphrase.as_deref())
+    })
+    .await
+    .map_err(|error| AppError::Internal(error.to_string()))??;
+
+    let vault = state.vault.lock().map_err(|_| vault_lock_error())?;
+    Ok(transfer::preview(vault.payload()?, &incoming))
+}
+
+#[derive(Debug, Serialize)]
+pub struct ImportResult {
+    pub mode: ImportMode,
+    pub merge: Option<MergeOutcome>,
+    pub backup_path: Option<String>,
+}
+
+#[tauri::command]
+pub async fn vault_import_apply(
+    state: State<'_, AppState>,
+    path: PathBuf,
+    passphrase: Option<String>,
+    mode: ImportMode,
+) -> Result<ImportResult, AppError> {
+    let incoming = tauri::async_runtime::spawn_blocking(move || {
+        read_export_file(&path)?.open(passphrase.as_deref())
+    })
+    .await
+    .map_err(|error| AppError::Internal(error.to_string()))??;
+
+    let mut vault = state.vault.lock().map_err(|_| vault_lock_error())?;
+
+    match mode {
+        ImportMode::Merge => {
+            let merge = vault.mutate(|payload| Ok(transfer::merge(payload, &incoming.payload)))?;
+            Ok(ImportResult {
+                mode,
+                merge: Some(merge),
+                backup_path: None,
+            })
+        }
+        ImportMode::Replace => {
+            if !incoming.includes_secrets {
+                return Err(AppError::InvalidInput(
+                    "a metadata-only export can only be merged".into(),
+                ));
+            }
+            vault.payload()?;
+            let backup = vault.backup_vault_file()?;
+            vault.mutate(|payload| {
+                transfer::replace(payload, incoming.payload);
+                Ok(())
+            })?;
+            Ok(ImportResult {
+                mode,
+                merge: None,
+                backup_path: Some(backup.display().to_string()),
+            })
+        }
+    }
 }
 
 #[tauri::command]

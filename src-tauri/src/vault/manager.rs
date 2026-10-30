@@ -143,6 +143,10 @@ impl VaultManager {
         }
     }
 
+    pub fn backup_vault_file(&self) -> Result<std::path::PathBuf, AppError> {
+        self.store.backup_copy()
+    }
+
     pub fn change_password(&mut self, current: &str, new: &str) -> Result<(), AppError> {
         validate_master_password(new)?;
 

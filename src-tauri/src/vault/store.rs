@@ -20,6 +20,20 @@ impl VaultStore {
         }
     }
 
+    /// Copies the current Vault file next to itself so a destructive import
+    /// can be undone by hand. Returns the backup's path.
+    pub fn backup_copy(&self) -> Result<PathBuf, AppError> {
+        let mut name = self
+            .path
+            .file_name()
+            .ok_or_else(|| AppError::Internal("vault path has no file name".into()))?
+            .to_os_string();
+        name.push(".pre-import.bak");
+        let backup = self.path.with_file_name(name);
+        fs::copy(&self.path, &backup)?;
+        Ok(backup)
+    }
+
     #[allow(dead_code)] // used by backup and export flows
     pub fn path(&self) -> &Path {
         &self.path

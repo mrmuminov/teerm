@@ -314,7 +314,7 @@ Split panes, Snippets, Mosh/Telnet/Serial, mobile, accounts/sync, AI, Jump Host 
 4. ✅ SSH sessions, host-key TOFU, xterm.js tabs, resize, reconnect.
 5. ✅ SFTP browser and transfer queue.
 6. ✅ Local and remote Port Forwards with status.
-7. Export/import (merge + replace).
+7. ✅ Export/import (merge + replace) from Settings. The Unlock-screen "Import a vault" flow (restore into a new device) is still open.
 8. Polish: themes, shortcuts, tests, packaging.
 
 ## 7. Resolved decisions

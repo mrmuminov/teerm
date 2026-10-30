@@ -12,6 +12,8 @@ import {
 import { toast } from "sonner";
 
 import { ChangePasswordDialog } from "@/components/auth/ChangePasswordDialog";
+import { ExportDialog } from "@/components/vault/ExportDialog";
+import { ImportDialog } from "@/components/vault/ImportDialog";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -88,6 +90,8 @@ export function SettingsPane() {
   const load = useSettingsStore((state) => state.load);
   const update = useSettingsStore((state) => state.update);
   const [changePasswordOpen, setChangePasswordOpen] = useState(false);
+  const [exportOpen, setExportOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
   const lock = useVaultStore((state) => state.lock);
 
   async function save(patch: Partial<Settings>, message: string) {
@@ -201,6 +205,30 @@ export function SettingsPane() {
               >
                 Change
               </Button>
+            </SettingsRow>
+
+            <Separator />
+
+            <SettingsRow
+              label="Export & import"
+              description="Back up the Vault to a file, or load one from another device."
+            >
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setImportOpen(true)}
+                >
+                  Import
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setExportOpen(true)}
+                >
+                  Export
+                </Button>
+              </div>
             </SettingsRow>
 
             <Separator />
@@ -383,6 +411,8 @@ export function SettingsPane() {
         </p>
       </div>
 
+      <ExportDialog open={exportOpen} onOpenChange={setExportOpen} />
+      <ImportDialog open={importOpen} onOpenChange={setImportOpen} />
       <ChangePasswordDialog
         open={changePasswordOpen}
         onOpenChange={setChangePasswordOpen}

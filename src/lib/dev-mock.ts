@@ -1006,6 +1006,34 @@ export function installDevMock() {
           unlocked = false;
           clearMockSftpState();
           return null;
+        case "vault_export":
+          return null;
+        case "vault_import_preview": {
+          const zero = {
+            hosts: 0,
+            groups: 0,
+            tags: 0,
+            keys: 0,
+            port_forwards: 0,
+            known_hosts: 0,
+          };
+          return {
+            includes_secrets: true,
+            can_replace: true,
+            incoming: { ...zero, hosts: 3, keys: 1 },
+            merge: {
+              added: { ...zero, hosts: 2, keys: 1 },
+              skipped: { ...zero, hosts: 1 },
+              duplicated: zero,
+            },
+          };
+        }
+        case "vault_import_apply":
+          return {
+            mode: args?.mode,
+            merge: null,
+            backup_path: args?.mode === "replace" ? "/mock/vault.bak" : null,
+          };
         case "vault_change_password":
           return null;
         case "settings_get":
