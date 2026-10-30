@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { open as openFolderDialog } from "@tauri-apps/plugin-dialog";
 import {
   FolderTree,
@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
+import { ChangePasswordDialog } from "@/components/auth/ChangePasswordDialog";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -86,6 +87,7 @@ export function SettingsPane() {
   const error = useSettingsStore((state) => state.error);
   const load = useSettingsStore((state) => state.load);
   const update = useSettingsStore((state) => state.update);
+  const [changePasswordOpen, setChangePasswordOpen] = useState(false);
   const lock = useVaultStore((state) => state.lock);
 
   async function save(patch: Partial<Settings>, message: string) {
@@ -184,6 +186,21 @@ export function SettingsPane() {
                 <span className="size-1.5 rounded-full bg-primary" />
                 Unlocked
               </Badge>
+            </SettingsRow>
+
+            <Separator />
+
+            <SettingsRow
+              label="Master Password"
+              description="Re-encrypt the Vault with a new password."
+            >
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setChangePasswordOpen(true)}
+              >
+                Change
+              </Button>
             </SettingsRow>
 
             <Separator />
@@ -365,6 +382,11 @@ export function SettingsPane() {
           Teerm is local-first by design. No account, no telemetry.
         </p>
       </div>
+
+      <ChangePasswordDialog
+        open={changePasswordOpen}
+        onOpenChange={setChangePasswordOpen}
+      />
     </div>
   );
 }
