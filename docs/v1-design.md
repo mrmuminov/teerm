@@ -314,7 +314,7 @@ Split panes, Snippets, Mosh/Telnet/Serial, mobile, accounts/sync, AI, Jump Host 
 4. ✅ SSH sessions, host-key TOFU, xterm.js tabs, resize, reconnect.
 5. ✅ SFTP browser and transfer queue.
 6. ✅ Local and remote Port Forwards with status.
-7. ✅ Export/import (merge + replace) from Settings. The Unlock-screen "Import a vault" flow (restore into a new device) is still open.
+7. ✅ Export/import (merge + replace) from Settings. Restoring onto a new device uses `vault_create_from_export` from the onboarding screen ("Restore from an export"); the export is opened before the Vault is created.
 8. Polish: themes, tests, packaging. Shortcuts from §4.4 are in (`AppShell.tsx`, terminal key handler).
 
 ## 7. Resolved decisions

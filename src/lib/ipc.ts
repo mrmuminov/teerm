@@ -268,6 +268,11 @@ export const ipc = {
   vaultLock: () => invoke<void>("vault_lock"),
   vaultChangePassword: (current: string, next: string) =>
     invoke<void>("vault_change_password", { current, new: next }),
+  vaultCreateFromExport: (
+    path: string,
+    passphrase: string | null,
+    password: string,
+  ) => invoke<void>("vault_create_from_export", { path, passphrase, password }),
   vaultExport: (path: string, mode: ExportMode, passphrase: string | null) =>
     invoke<void>("vault_export", { path, mode, passphrase }),
   vaultImportPreview: (path: string, passphrase: string | null) =>

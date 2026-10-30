@@ -28,6 +28,7 @@ pub fn run() {
             commands::vault_unlock,
             commands::vault_lock,
             commands::vault_change_password,
+            commands::vault_create_from_export,
             commands::vault_export,
             commands::vault_import_preview,
             commands::vault_import_apply,

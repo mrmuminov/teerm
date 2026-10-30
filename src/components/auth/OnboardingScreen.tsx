@@ -8,6 +8,7 @@ import {
 
 import { AuthLayout } from "@/components/auth/AuthLayout";
 import { PasswordField } from "@/components/auth/PasswordField";
+import { RestoreDialog } from "@/components/auth/RestoreDialog";
 import {
   Alert,
   AlertDescription,
@@ -36,6 +37,7 @@ export function OnboardingScreen() {
   const [password, setPassword] = useState("");
   const [confirmation, setConfirmation] = useState("");
   const [acknowledged, setAcknowledged] = useState(false);
+  const [restoreOpen, setRestoreOpen] = useState(false);
 
   useEffect(() => {
     clearError();
@@ -177,8 +179,21 @@ export function OnboardingScreen() {
               Create vault
             </Button>
           </form>
+
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="mt-2 w-full text-muted-foreground"
+            disabled={busy}
+            onClick={() => setRestoreOpen(true)}
+          >
+            Restore from an export
+          </Button>
         </CardContent>
       </Card>
+
+      <RestoreDialog open={restoreOpen} onOpenChange={setRestoreOpen} />
 
       <p className="mt-5 flex items-center justify-center gap-1.5 text-center text-[11px] text-muted-foreground">
         <ShieldCheck className="size-3.5" />

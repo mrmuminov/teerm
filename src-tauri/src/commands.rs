@@ -164,6 +164,27 @@ pub async fn vault_import_apply(
     }
 }
 
+/// Creates the Vault from an export, for restoring onto a new device. The
+/// export is opened first so a wrong passphrase leaves no empty Vault behind.
+#[tauri::command]
+pub async fn vault_create_from_export(
+    state: State<'_, AppState>,
+    path: PathBuf,
+    passphrase: Option<String>,
+    password: String,
+) -> Result<(), AppError> {
+    let incoming = tauri::async_runtime::spawn_blocking(move || {
+        read_export_file(&path)?.open(passphrase.as_deref())
+    })
+    .await
+    .map_err(|error| AppError::Internal(error.to_string()))??;
+
+    let mut vault = state.vault.lock().map_err(|_| vault_lock_error())?;
+    vault.create(&password)?;
+    vault.mutate(|payload| Ok(transfer::merge(payload, &incoming.payload)))?;
+    Ok(())
+}
+
 #[tauri::command]
 pub fn settings_get(state: State<'_, AppState>) -> Result<Settings, AppError> {
     let settings = state.settings.lock().map_err(|_| settings_lock_error())?;

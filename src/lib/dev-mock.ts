@@ -1006,6 +1006,8 @@ export function installDevMock() {
           unlocked = false;
           clearMockSftpState();
           return null;
+        case "vault_create_from_export":
+          return null;
         case "vault_export":
           return null;
         case "vault_import_preview": {
