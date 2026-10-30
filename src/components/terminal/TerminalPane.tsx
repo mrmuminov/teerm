@@ -1,10 +1,16 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import { openUrl } from "@tauri-apps/plugin-opener";
 import { FitAddon } from "@xterm/addon-fit";
+import { SearchAddon } from "@xterm/addon-search";
+import { WebLinksAddon } from "@xterm/addon-web-links";
+import { WebglAddon } from "@xterm/addon-webgl";
 import { Terminal, type ITheme } from "@xterm/xterm";
 import "@xterm/xterm/css/xterm.css";
 import { Loader2, RefreshCw, TriangleAlert, WifiOff, X } from "lucide-react";
 
+import { TerminalSearchBar } from "@/components/terminal/TerminalSearchBar";
 import { Button } from "@/components/ui/button";
+import { isDevMock } from "@/lib/env";
 import { ipc } from "@/lib/ipc";
 import { attachTerminal } from "@/lib/terminal-bus";
 import { cn } from "@/lib/utils";
@@ -90,7 +96,9 @@ export function TerminalPane({
   const terminalRef = useRef<Terminal | null>(null);
   const doFitRef = useRef<((forceResize?: boolean) => void) | null>(null);
   const sessionIdRef = useRef(tab.sshSessionId);
+  const searchRef = useRef<SearchAddon | null>(null);
   const activeRef = useRef(active);
+  const [searchOpen, setSearchOpen] = useState(false);
 
   sessionIdRef.current = tab.sshSessionId;
   activeRef.current = active;
@@ -129,8 +137,31 @@ export function TerminalPane({
     const fitAddon = new FitAddon();
     const encoder = new TextEncoder();
 
+    const searchAddon = new SearchAddon();
+
     terminal.loadAddon(fitAddon);
+    terminal.loadAddon(searchAddon);
+    terminal.loadAddon(
+      new WebLinksAddon((_event, uri) => {
+        if (isDevMock()) {
+          window.open(uri, "_blank", "noopener");
+        } else {
+          void openUrl(uri).catch(() => {});
+        }
+      }),
+    );
     terminal.open(host);
+    searchRef.current = searchAddon;
+
+    // The renderer falls back to the DOM one if WebGL is unavailable or the
+    // context is lost.
+    try {
+      const webgl = new WebglAddon();
+      webgl.onContextLoss(() => webgl.dispose());
+      terminal.loadAddon(webgl);
+    } catch {
+      // Keep the default renderer.
+    }
 
     if (terminal.element) {
       terminal.element.style.padding = "10px 14px";
@@ -204,6 +235,17 @@ export function TerminalPane({
     terminal.attachCustomKeyEventHandler((event) => {
       if (event.type !== "keydown") {
         return true;
+      }
+
+      if (
+        (event.ctrlKey || event.metaKey) &&
+        !event.shiftKey &&
+        !event.altKey &&
+        event.key.toLowerCase() === "f"
+      ) {
+        event.preventDefault();
+        setSearchOpen(true);
+        return false;
       }
 
       if (!(event.ctrlKey || event.metaKey) || !event.shiftKey) {
@@ -285,6 +327,7 @@ export function TerminalPane({
       dataDisposable.dispose();
       detach();
       doFitRef.current = null;
+      searchRef.current = null;
       terminalRef.current = null;
       terminal.dispose();
       host.replaceChildren();
@@ -354,6 +397,16 @@ export function TerminalPane({
   return (
     <div className="relative h-full min-h-0 w-full overflow-hidden bg-[#0b0e11]">
       <div ref={hostRef} className="h-full w-full" />
+
+      {searchOpen && (
+        <TerminalSearchBar
+          search={searchRef.current}
+          onClose={() => {
+            setSearchOpen(false);
+            terminalRef.current?.focus();
+          }}
+        />
+      )}
 
       {showStatusPill && (
         <div className="pointer-events-none absolute top-3 right-3 z-10 flex items-center gap-1.5 rounded-full border border-primary/20 bg-background/75 px-2.5 py-1 text-[10px] font-medium text-primary shadow-lg shadow-black/30 backdrop-blur">

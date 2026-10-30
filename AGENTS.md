@@ -32,6 +32,7 @@ Read `CONTEXT.md` before naming things: it defines the domain vocabulary (Host, 
 
 **Frontend (`src`):**
 - `lib/ipc.ts` is the single typed wrapper around `invoke` and mirrors the Rust DTOs/commands by hand — keep it in sync with `commands.rs` and the DTOs. `lib/events.ts` wraps Tauri event listeners (`ssh` data / closed / auth-prompt, transfer progress) and falls back to the dev-mock event bus.
+- Terminal addons (fit, search, web-links via `tauri-plugin-opener`, webgl) are wired in `components/terminal/TerminalPane.tsx`; `Ctrl/Cmd+F` opens `TerminalSearchBar`.
 - `stores/` — Zustand stores per concern (`vault`, `inventory`, `sessions`, `sftp`, `settings`, `ui`). `sessions.ts` coordinates Session lifecycle with the other stores; terminal bytes flow through `lib/terminal-bus.ts` rather than React state.
 - `components/`: `auth/` (boot/onboarding/unlock/error screens gated on vault status), `layout/` (AppShell, IconRail, Sidebar, TabBar, panes), `hosts/`, `keys/`, `known-hosts/`, `terminal/`, `sftp/`, `ui/` (shadcn-generated primitives). Path alias `@/` → `src/`.
 - When adding a backend feature, update the dev mock too, otherwise browser-only `npm run dev` breaks.
