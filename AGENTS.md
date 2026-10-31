@@ -12,7 +12,8 @@ Read `CONTEXT.md` before naming things: it defines the domain vocabulary (Host, 
 
 - `npm run tauri dev` — run the full desktop app (starts Vite on fixed port 1420 via `beforeDevCommand`).
 - `npm run dev` — Vite only, in a plain browser. In dev mode `src/main.tsx` installs `src/lib/dev-mock.ts`, a browser-only IPC/event mock (modes: onboarding / locked / unlocked), so the UI works without Rust. `isDevMock()` in `src/lib/env.ts` detects it.
-- `npm run build` — `tsc` typecheck + `vite build` (this is the only frontend type/lint check; no ESLint or JS test runner is configured).
+- `npm run build` — `tsc` typecheck + `vite build` (the only frontend type check; no ESLint is configured).
+- `npm test` — Vitest (node environment) for `src/**/*.test.ts`; `npx vitest run <file>` for a single file. Covers pure `lib/` helpers and stores; there are no component tests.
 - `npm run tauri build` — production bundle.
 - Rust (run in `src-tauri/`): `cargo test` for all tests, `cargo test <name>` for a single test, `cargo clippy`. Tests are inline `#[cfg(test)]` modules (ssh, sftp, forward, inventory/service, vault/{store,crypto,manager,transfer}); `tempfile` is the dev-dependency for filesystem tests.
 
