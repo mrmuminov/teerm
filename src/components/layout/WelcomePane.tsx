@@ -31,8 +31,8 @@ const features = [
 
 function TerminalPreview({ hostCount }: { hostCount: number }) {
   return (
-    <div className="overflow-hidden rounded-xl border border-border/70 bg-[oklch(0.115_0.008_260)] shadow-2xl shadow-black/50">
-      <div className="flex h-9 items-center gap-2 border-b border-white/5 bg-white/[0.025] px-3">
+    <div className="dark overflow-hidden rounded-xl border border-border/70 bg-[oklch(0.115_0.008_260)] shadow-2xl shadow-black/50">
+      <div className="flex h-9 items-center gap-2 border-b border-foreground/5 bg-foreground/[0.025] px-3">
         <div className="flex gap-1.5">
           <span className="size-2.5 rounded-full bg-[oklch(0.65_0.19_25)]/80" />
           <span className="size-2.5 rounded-full bg-[oklch(0.78_0.15_85)]/80" />
@@ -41,7 +41,7 @@ function TerminalPreview({ hostCount }: { hostCount: number }) {
         <span className="ml-1 text-[10px] text-muted-foreground">
           you@teerm — ~
         </span>
-        <span className="ml-auto rounded bg-white/5 px-1.5 py-0.5 font-mono text-[9px] text-muted-foreground">
+        <span className="ml-auto rounded bg-foreground/5 px-1.5 py-0.5 font-mono text-[9px] text-muted-foreground">
           zsh
         </span>
       </div>

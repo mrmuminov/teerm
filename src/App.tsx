@@ -7,16 +7,22 @@ import { UnlockScreen } from "@/components/auth/UnlockScreen";
 import { AppShell } from "@/components/layout/AppShell";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { useThemeSync } from "@/lib/theme";
+import { useSettingsStore } from "@/stores/settings";
 import { useVaultStore } from "@/stores/vault";
 
 function App() {
   const phase = useVaultStore((state) => state.phase);
   const error = useVaultStore((state) => state.error);
   const init = useVaultStore((state) => state.init);
+  const loadSettings = useSettingsStore((state) => state.load);
+  const theme = useThemeSync();
 
   useEffect(() => {
     void init();
-  }, [init]);
+    // Settings are not secret, so the saved theme applies on the lock screen too.
+    void loadSettings();
+  }, [init, loadSettings]);
 
   return (
     <TooltipProvider delayDuration={250}>
@@ -28,7 +34,7 @@ function App() {
         <ErrorScreen message={error} onRetry={() => void init()} />
       )}
 
-      <Toaster theme="dark" position="bottom-right" />
+      <Toaster theme={theme} position="bottom-right" />
     </TooltipProvider>
   );
 }

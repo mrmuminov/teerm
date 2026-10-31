@@ -305,11 +305,23 @@ export function SettingsPane() {
           >
             <SettingsRow
               label="Theme"
-              description="Teerm ships with a purpose-built dark terminal theme."
+              description="Choose a light or dark interface, or follow the system."
             >
-              <Badge variant="secondary" className="text-muted-foreground">
-                Dark
-              </Badge>
+              <Select
+                value={settings.app_theme}
+                onValueChange={(value) =>
+                  void save({ app_theme: value }, "Theme updated")
+                }
+              >
+                <SelectTrigger size="sm" className="w-[120px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="dark">Dark</SelectItem>
+                  <SelectItem value="light">Light</SelectItem>
+                  <SelectItem value="system">System</SelectItem>
+                </SelectContent>
+              </Select>
             </SettingsRow>
 
             <Separator />

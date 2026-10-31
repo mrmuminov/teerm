@@ -38,4 +38,4 @@ Read `CONTEXT.md` before naming things: it defines the domain vocabulary (Host, 
 - `components/`: `auth/` (boot/onboarding/unlock/error screens gated on vault status), `layout/` (AppShell, IconRail, Sidebar, TabBar, panes), `hosts/`, `keys/`, `known-hosts/`, `terminal/`, `sftp/`, `ui/` (shadcn-generated primitives). Path alias `@/` → `src/`.
 - When adding a backend feature, update the dev mock too, otherwise browser-only `npm run dev` breaks.
 
-The UI is dark-only (`main.tsx` forces the `dark` class).
+Theme: `app_theme` (`dark` | `light` | `system`) is applied by `useThemeSync` in `lib/theme.ts` by toggling the `dark` class on `<html>`; `main.tsx` starts dark until settings load. The terminal and the Welcome terminal preview stay dark in both themes, so their containers carry their own `dark` class. Prefer theme tokens (`bg-foreground/5`) over `white/…` literals.

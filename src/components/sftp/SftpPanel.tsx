@@ -150,7 +150,7 @@ function FileRow({
           onOpen();
         }
       }}
-      className="group grid h-[30px] cursor-default grid-cols-[minmax(0,1fr)_70px_100px] items-center gap-2 rounded-md px-2 text-[11.5px] outline-none transition-colors hover:bg-white/[0.035] focus-visible:bg-white/[0.04] focus-visible:ring-1 focus-visible:ring-primary/50 focus-visible:ring-inset"
+      className="group grid h-[30px] cursor-default grid-cols-[minmax(0,1fr)_70px_100px] items-center gap-2 rounded-md px-2 text-[11.5px] outline-none transition-colors hover:bg-foreground/[0.035] focus-visible:bg-foreground/[0.04] focus-visible:ring-1 focus-visible:ring-primary/50 focus-visible:ring-inset"
     >
       <div className="flex min-w-0 items-center gap-2">
         {entry.isDir ? (
@@ -298,7 +298,7 @@ function TransferRow({
           <X className="size-3" />
         </Button>
       </div>
-      <div className="mt-1 h-[3px] overflow-hidden rounded-full bg-white/[0.06]">
+      <div className="mt-1 h-[3px] overflow-hidden rounded-full bg-foreground/[0.06]">
         <div
           className={cn("h-full rounded-full transition-[width]", tone)}
           style={{ width: `${percent}%` }}
@@ -642,7 +642,7 @@ export function SftpPanel({ tab }: { tab: SessionTab }) {
   return (
     <aside
       aria-label="SFTP browser"
-      className="relative flex h-full min-h-0 shrink-0 flex-col border-l border-border/70 bg-[#0c0f12]"
+      className="relative flex h-full min-h-0 shrink-0 flex-col border-l border-border/70 bg-sidebar"
       style={{ width }}
     >
       <div
@@ -824,7 +824,7 @@ export function SftpPanel({ tab }: { tab: SessionTab }) {
                         void goUp(tab.id, sessionId);
                       }
                     }}
-                    className="group grid h-[30px] grid-cols-[minmax(0,1fr)_70px_100px] items-center gap-2 rounded-md px-2 text-[11.5px] outline-none transition-colors hover:bg-white/[0.035] focus-visible:bg-white/[0.04] focus-visible:ring-1 focus-visible:ring-primary/50 focus-visible:ring-inset"
+                    className="group grid h-[30px] grid-cols-[minmax(0,1fr)_70px_100px] items-center gap-2 rounded-md px-2 text-[11.5px] outline-none transition-colors hover:bg-foreground/[0.035] focus-visible:bg-foreground/[0.04] focus-visible:ring-1 focus-visible:ring-primary/50 focus-visible:ring-inset"
                   >
                     <div className="flex min-w-0 items-center gap-2 text-muted-foreground">
                       <CornerLeftUp className="size-3.5 shrink-0" />

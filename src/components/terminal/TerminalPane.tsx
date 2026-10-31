@@ -395,7 +395,7 @@ export function TerminalPane({
     tab.status === "disconnected" || tab.status === "error";
 
   return (
-    <div className="relative h-full min-h-0 w-full overflow-hidden bg-[#0b0e11]">
+    <div className="dark relative h-full min-h-0 w-full overflow-hidden bg-[#0b0e11]">
       <div ref={hostRef} className="h-full w-full" />
 
       {searchOpen && (
