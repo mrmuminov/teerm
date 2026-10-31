@@ -3,6 +3,7 @@ import { Loader2, LockKeyhole, ShieldCheck, TriangleAlert } from "lucide-react";
 
 import { AuthLayout } from "@/components/auth/AuthLayout";
 import { PasswordField } from "@/components/auth/PasswordField";
+import { RecoverDialog } from "@/components/auth/RecoverDialog";
 import {
   Alert,
   AlertDescription,
@@ -27,6 +28,10 @@ export function UnlockScreen() {
   const clearError = useVaultStore((state) => state.clearError);
 
   const [password, setPassword] = useState("");
+  const [recoverOpen, setRecoverOpen] = useState(false);
+  const recoveryEnabled = useVaultStore(
+    (state) => state.status?.recovery_enabled ?? false,
+  );
 
   useEffect(() => {
     clearError();
@@ -81,8 +86,23 @@ export function UnlockScreen() {
               {busy ? <Loader2 className="animate-spin" /> : <LockKeyhole />}
               {t("Unlock")}</Button>
           </form>
+
+          {recoveryEnabled && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="mt-2 w-full text-muted-foreground"
+              disabled={busy}
+              onClick={() => setRecoverOpen(true)}
+            >
+              {t("Forgot your password? Use the recovery phrase")}
+            </Button>
+          )}
         </CardContent>
       </Card>
+
+      <RecoverDialog open={recoverOpen} onOpenChange={setRecoverOpen} />
 
       <p className="mt-5 flex items-center justify-center gap-1.5 text-center text-[11px] text-muted-foreground">
         <ShieldCheck className="size-3.5" />

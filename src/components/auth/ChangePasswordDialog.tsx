@@ -3,6 +3,7 @@ import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { PasswordField } from "@/components/auth/PasswordField";
+import { PhraseGenerator } from "@/components/auth/PhraseGenerator";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -106,6 +107,13 @@ export function ChangePasswordDialog({
             autoComplete="new-password"
             disabled={busy}
             onEnter={() => void submit()}
+          />
+          <PhraseGenerator
+            disabled={busy}
+            onGenerated={(generated) => {
+              setNext(generated);
+              setConfirmation(generated);
+            }}
           />
           {mismatch && (
             <p className="text-[11px] text-destructive">

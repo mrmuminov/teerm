@@ -8,6 +8,7 @@ import {
 
 import { AuthLayout } from "@/components/auth/AuthLayout";
 import { PasswordField } from "@/components/auth/PasswordField";
+import { PhraseGenerator } from "@/components/auth/PhraseGenerator";
 import { RestoreDialog } from "@/components/auth/RestoreDialog";
 import {
   Alert,
@@ -130,11 +131,19 @@ export function OnboardingScreen() {
               )}
             </div>
 
+            <PhraseGenerator
+              disabled={busy}
+              onGenerated={(phrase) => {
+                setPassword(phrase);
+                setConfirmation(phrase);
+              }}
+            />
+
             <Alert className="border-amber-500/25 bg-amber-500/5">
               <TriangleAlert className="text-amber-500" />
-              <AlertTitle>{t("There is no password recovery")}</AlertTitle>
+              <AlertTitle>{t("A forgotten password cannot be reset")}</AlertTitle>
               <AlertDescription>
-                {t("If you forget this password, the vault cannot be opened. Keep an encrypted export somewhere safe.")}</AlertDescription>
+                {t("Without a recovery phrase, a forgotten password cannot be recovered. Create one in Settings after setup, and keep an encrypted export somewhere safe.")}</AlertDescription>
             </Alert>
 
             <div className="flex items-start gap-2.5 rounded-lg border border-border/60 bg-background/40 p-3">
@@ -149,7 +158,7 @@ export function OnboardingScreen() {
                 htmlFor="acknowledge"
                 className="text-xs leading-relaxed font-normal text-muted-foreground"
               >
-                {t("I understand that a lost master password cannot be recovered.")}</Label>
+                {t("I understand that without a recovery phrase a lost master password cannot be recovered.")}</Label>
             </div>
 
             {error && (

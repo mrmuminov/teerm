@@ -12,6 +12,7 @@ import {
 import { toast } from "sonner";
 
 import { ChangePasswordDialog } from "@/components/auth/ChangePasswordDialog";
+import { RecoveryDialog, type RecoveryMode } from "@/components/auth/RecoveryDialog";
 import { ExportDialog } from "@/components/vault/ExportDialog";
 import { ImportDialog } from "@/components/vault/ImportDialog";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -92,6 +93,10 @@ export function SettingsPane() {
   const load = useSettingsStore((state) => state.load);
   const update = useSettingsStore((state) => state.update);
   const [changePasswordOpen, setChangePasswordOpen] = useState(false);
+  const [recoveryMode, setRecoveryMode] = useState<RecoveryMode | null>(null);
+  const recoveryEnabled = useVaultStore(
+    (state) => state.status?.recovery_enabled ?? false,
+  );
   const [exportOpen, setExportOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
   const lock = useVaultStore((state) => state.lock);
@@ -206,6 +211,37 @@ export function SettingsPane() {
             <Separator />
 
             <SettingsRow
+              label={t("Recovery phrase")}
+              description={
+                recoveryEnabled
+                  ? t("A 24-word phrase can reset a forgotten Master Password.")
+                  : t("Not set up. Without it a forgotten Master Password cannot be recovered.")
+              }
+            >
+              <div className="flex items-center gap-2">
+                {recoveryEnabled && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-muted-foreground"
+                    onClick={() => setRecoveryMode("disable")}
+                  >
+                    {t("Turn off")}
+                  </Button>
+                )}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setRecoveryMode("enable")}
+                >
+                  {recoveryEnabled ? t("Replace") : t("Set up")}
+                </Button>
+              </div>
+            </SettingsRow>
+
+            <Separator />
+
+            <SettingsRow
               label={t("Export & import")}
               description={t("Back up the Vault to a file, or load one from another device.")}
             >
@@ -277,7 +313,7 @@ export function SettingsPane() {
               <div className="flex items-start gap-2">
                 <TriangleAlert className="mt-0.5 size-3.5 shrink-0 text-amber-500/90" />
                 <p className="max-w-[360px] text-[11px] leading-relaxed text-muted-foreground">
-                  {t("There is no master password recovery. Keep an encrypted export somewhere safe.")}</p>
+                  {t("Keep an encrypted export and your recovery phrase somewhere safe.")}</p>
               </div>
               <Button
                 variant="outline"
@@ -428,6 +464,11 @@ export function SettingsPane() {
 
       <ExportDialog open={exportOpen} onOpenChange={setExportOpen} />
       <ImportDialog open={importOpen} onOpenChange={setImportOpen} />
+      <RecoveryDialog
+        open={recoveryMode !== null}
+        mode={recoveryMode ?? "enable"}
+        onOpenChange={(open) => !open && setRecoveryMode(null)}
+      />
       <ChangePasswordDialog
         open={changePasswordOpen}
         onOpenChange={setChangePasswordOpen}

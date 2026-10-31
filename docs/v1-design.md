@@ -49,11 +49,13 @@ The Rust core owns every Secret and every socket. The webview never receives a p
 }
 ```
 
-- Key: Argon2id(password, salt) → 32 bytes.
+- Password key: Argon2id(password, salt) → 32 bytes. It wraps a random 32-byte data-encryption key (DEK) and never touches the payload directly (format version 2; version 1 files, which used the password key as the data key, still open and are upgraded on the next save).
 - AEAD: XChaCha20-Poly1305; AAD binds the canonical header (`format`, `version`, `kdf`, `cipher`).
 - Plaintext: UTF-8 JSON payload.
 - Key material and decrypted payload are zeroized on lock.
-- Master Password change: decrypt, new salt + nonce, re-encrypt.
+- Master Password change: unwrap the DEK, wrap it again under a new salt. The payload and the Recovery Phrase wrap are untouched in meaning, so the Recovery Phrase stays valid.
+- Recovery Phrase (optional): a 24-word BIP39 phrase (256 bits). Argon2id(phrase, its own salt) wraps the same DEK, stored as `recovery` in the header. The phrase is shown once and never stored. It can open the Vault and set a new Master Password (`vault_recover`), and can be regenerated or turned off after re-entering the Master Password.
+- A Master Password typed as a valid BIP39 phrase is normalized (lowercase, single spaces); a Vault stored with the typed form still opens.
 
 ### 2.3 Payload
 
@@ -136,7 +138,7 @@ Supported import: OpenSSH ed25519, RSA, ECDSA. Private material is write-only ac
 - Lock on app close; manual lock (`Ctrl/Cmd+L`).
 - The frontend owns the inactivity timer, reset by pointer, keyboard, and scroll activity; it calls `vault_lock` when idle. Future terminal input also counts.
 - On lock: zeroize keys, close all Sessions, cancel transfers, clear UI state, show unlock screen.
-- No recovery key. Setup warns that a forgotten Master Password means the Vault is unrecoverable; Export is the backup path.
+- Recovery is opt-in: without a Recovery Phrase a forgotten Master Password means the Vault is unrecoverable. Setup warns about this and Settings offers the phrase; Export is the other backup path.
 
 ### 2.7 Export / Import
 
@@ -160,6 +162,10 @@ Per-session terminal data uses a Tauri `Channel<SessionEvent>` (base64-encoded b
 | `vault_unlock` | `{ password }` | `{ }` |
 | `vault_lock` | — | `{ }` |
 | `vault_change_password` | `{ current, new }` | `{ }` |
+| `vault_generate_phrase` | `{ words: 12 \| 24 }` | BIP39 phrase for use as a Master Password |
+| `vault_enable_recovery` | `{ password }` | the 24-word Recovery Phrase (shown once) |
+| `vault_disable_recovery` | `{ password }` | `{ }` |
+| `vault_recover` | `{ phrase, new_password }` | `{ }` (works while locked) |
 | `vault_export` | `{ path, mode, passphrase? }` | `{ }` |
 | `vault_import_preview` | `{ path, passphrase? }` | `ImportPreview` |
 | `vault_import_apply` | `{ path, passphrase?, mode }` | `ImportResult` |

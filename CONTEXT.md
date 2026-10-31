@@ -70,6 +70,10 @@ _Avoid_: File manager, explorer
 The single passphrase the user enters to unlock the Vault.
 _Avoid_: Vault password, encryption key, login password
 
+**Recovery Phrase**:
+An optional 24-word BIP39 phrase that can open the Vault and reset the Master Password. It is shown once and never stored.
+_Avoid_: Seed phrase, recovery key, backup code
+
 **Secret**:
 A sensitive value stored in the Vault, such as a login password or a Key passphrase.
 _Avoid_: Credential, token
