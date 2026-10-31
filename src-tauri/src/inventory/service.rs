@@ -170,6 +170,7 @@ pub fn create_host(payload: &mut VaultPayload, input: HostInput) -> Result<HostV
         key_id,
         password: validate_new_password(input.password.as_deref()),
         jump_host_id: None,
+        monitoring: input.monitoring,
         created_at: now,
         updated_at: now,
         deleted_at: None,
@@ -205,6 +206,7 @@ pub fn update_host(
     host.group_id = group_id;
     host.tag_ids = tag_ids;
     host.key_id = key_id;
+    host.monitoring = input.monitoring;
 
     if input.clear_password {
         host.password = None;

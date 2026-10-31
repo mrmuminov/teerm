@@ -434,6 +434,7 @@ pub async fn session_close(
     session_id: Uuid,
 ) -> Result<(), AppError> {
     state.forwards.stop_session(&app, session_id).await;
+    state.monitor.forget(session_id);
     state.sftp.close_session(session_id).await;
     state.ssh.close(session_id).await;
     Ok(())
@@ -445,6 +446,15 @@ pub async fn session_latency(
     session_id: Uuid,
 ) -> Result<u64, AppError> {
     state.ssh.latency_ms(session_id).await
+}
+
+/// One reading of the server's resource use for the Host page monitor.
+#[tauri::command]
+pub async fn monitor_sample(
+    state: State<'_, AppState>,
+    session_id: Uuid,
+) -> Result<crate::monitor::MonitorSample, AppError> {
+    state.monitor.sample(&state.ssh, session_id).await
 }
 
 #[tauri::command]

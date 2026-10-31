@@ -32,6 +32,8 @@ pub struct HostInput {
     /// Explicitly removes the stored password when updating.
     #[serde(default)]
     pub clear_password: bool,
+    #[serde(default)]
+    pub monitoring: bool,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -45,6 +47,7 @@ pub struct HostView {
     pub tag_ids: Vec<Uuid>,
     pub key_id: Option<Uuid>,
     pub has_password: bool,
+    pub monitoring: bool,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
 }
@@ -64,6 +67,7 @@ impl From<&Host> for HostView {
                 .password
                 .as_ref()
                 .is_some_and(|password| !password.is_empty()),
+            monitoring: host.monitoring,
             created_at: host.created_at,
             updated_at: host.updated_at,
         }

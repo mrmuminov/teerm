@@ -3,6 +3,7 @@ mod error;
 mod forward;
 mod fsutil;
 mod inventory;
+mod monitor;
 mod settings;
 mod sftp;
 mod ssh;
@@ -43,6 +44,7 @@ pub fn run() {
             commands::session_resize,
             commands::session_close,
             commands::session_latency,
+            commands::monitor_sample,
             commands::session_auth_respond,
             commands::sftp_open,
             commands::sftp_list,

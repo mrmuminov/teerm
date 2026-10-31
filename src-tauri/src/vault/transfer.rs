@@ -424,6 +424,7 @@ mod tests {
             key_id: None,
             password: Some("hunter2-secret".into()),
             jump_host_id: None,
+            monitoring: false,
             created_at: now,
             updated_at: now,
             deleted_at: None,

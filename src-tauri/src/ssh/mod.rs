@@ -618,6 +618,65 @@ impl SshManager {
         })
     }
 
+    /// Runs `command` on a fresh channel of the Session, feeds it `script` on
+    /// standard input, and returns what it printed. Used for read-only probes
+    /// such as the server monitor.
+    pub async fn run_script(
+        &self,
+        session_id: Uuid,
+        command: &str,
+        script: &str,
+        timeout: Duration,
+    ) -> Result<String, AppError> {
+        const MAX_OUTPUT_BYTES: usize = 256 * 1024;
+
+        let link = self.forward_link(session_id).await?;
+        let mut channel = {
+            let handle = link.handle.lock().await;
+            handle.channel_open_session().await.map_err(|error| {
+                AppError::Internal(format!("could not open a probe channel: {error}"))
+            })?
+        };
+
+        let run = async {
+            channel
+                .exec(true, command.to_string())
+                .await
+                .map_err(|error| AppError::Internal(format!("could not run the probe: {error}")))?;
+            channel
+                .data_bytes(script.as_bytes().to_vec())
+                .await
+                .map_err(|error| AppError::Internal(format!("could not send the probe: {error}")))?;
+            channel
+                .eof()
+                .await
+                .map_err(|error| AppError::Internal(format!("could not send the probe: {error}")))?;
+
+            let mut output = Vec::new();
+            while let Some(message) = channel.wait().await {
+                match message {
+                    ChannelMsg::Data { data } => {
+                        output.extend_from_slice(&data[..]);
+                        if output.len() > MAX_OUTPUT_BYTES {
+                            break;
+                        }
+                    }
+                    ChannelMsg::Eof | ChannelMsg::Close => break,
+                    _ => {}
+                }
+            }
+            Ok::<_, AppError>(output)
+        };
+
+        let result = tokio::time::timeout(timeout, run).await;
+        let _ = channel.close().await;
+
+        match result {
+            Ok(output) => Ok(String::from_utf8_lossy(&output?).into_owned()),
+            Err(_) => Err(AppError::Internal("the server did not answer in time".into())),
+        }
+    }
+
     /// Round-trip time of an SSH ping, in milliseconds.
     pub async fn latency_ms(&self, session_id: Uuid) -> Result<u64, AppError> {
         let link = self.forward_link(session_id).await?;

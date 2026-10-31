@@ -3,6 +3,7 @@ use std::sync::Mutex;
 
 use crate::error::AppError;
 use crate::forward::ForwardManager;
+use crate::monitor::MonitorManager;
 use crate::settings::Settings;
 use crate::sftp::SftpManager;
 use crate::ssh::SshManager;
@@ -14,6 +15,7 @@ pub struct AppState {
     pub ssh: SshManager,
     pub sftp: SftpManager,
     pub forwards: ForwardManager,
+    pub monitor: MonitorManager,
     pub settings: Mutex<Settings>,
     pub settings_path: PathBuf,
 }
@@ -31,6 +33,7 @@ impl AppState {
             ssh: SshManager::new(),
             sftp: SftpManager::new(),
             forwards: ForwardManager::new(),
+            monitor: MonitorManager::new(),
             settings: Mutex::new(settings),
             settings_path,
         })

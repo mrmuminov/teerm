@@ -96,6 +96,9 @@ pub struct Host {
     /// Reserved for the Jump Host feature (v1.1). No UI in v1.
     #[serde(default)]
     pub jump_host_id: Option<Uuid>,
+    /// Shows a resource monitor on the Host page while a Session is open.
+    #[serde(default)]
+    pub monitoring: bool,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
     #[serde(default)]
