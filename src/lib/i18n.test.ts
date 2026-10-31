@@ -50,3 +50,35 @@ describe("dictionaries", () => {
     }
   });
 });
+
+describe("translateBackendMessage", () => {
+  it("translates fixed and templated messages from the Rust core", async () => {
+    const { setActiveLanguage, translateBackendMessage } = await import(
+      "@/lib/translate"
+    );
+    setActiveLanguage("uz");
+
+    expect(translateBackendMessage("vault is locked")).toBe("Vault qulflangan");
+    expect(translateBackendMessage("invalid input: label is required")).toBe(
+      "nomi majburiy",
+    );
+    expect(translateBackendMessage("not found: port forward")).toBe(
+      "Topilmadi: port yo‘naltirish",
+    );
+
+    setActiveLanguage("en");
+  });
+
+  it("keeps unknown messages as they are", async () => {
+    const { setActiveLanguage, translateBackendMessage } = await import(
+      "@/lib/translate"
+    );
+    setActiveLanguage("ru");
+
+    expect(translateBackendMessage("something unexpected")).toBe(
+      "something unexpected",
+    );
+
+    setActiveLanguage("en");
+  });
+});
