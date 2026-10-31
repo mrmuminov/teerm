@@ -18,6 +18,7 @@ import type { Section } from "@/lib/navigation";
 import { cn } from "@/lib/utils";
 import { useUiStore } from "@/stores/ui";
 import { useVaultStore } from "@/stores/vault";
+import { useT } from "@/lib/i18n";
 
 type RailItem = {
   id: Section;
@@ -74,6 +75,7 @@ function RailButton({
 }
 
 export function IconRail() {
+  const t = useT();
   const section = useUiStore((state) => state.section);
   const setSection = useUiStore((state) => state.setSection);
   const lock = useVaultStore((state) => state.lock);
@@ -83,7 +85,7 @@ export function IconRail() {
       <button
         type="button"
         onClick={() => setSection("hosts")}
-        aria-label="Teerm home"
+        aria-label={t("Teerm home")}
         className="mb-1 rounded-lg outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
       >
         <Logo compact />
@@ -114,7 +116,7 @@ export function IconRail() {
             <Button
               variant="ghost"
               size="icon"
-              aria-label="Lock vault"
+              aria-label={t("Lock vault")}
               onClick={() => void lock()}
               className="size-9 text-muted-foreground hover:text-foreground"
             >
@@ -122,8 +124,7 @@ export function IconRail() {
             </Button>
           </TooltipTrigger>
           <TooltipContent side="right" sideOffset={8}>
-            Lock vault
-            <span className="ml-1.5 text-muted-foreground">⌘L</span>
+            {t("Lock vault")}<span className="ml-1.5 text-muted-foreground">⌘L</span>
           </TooltipContent>
         </Tooltip>
       </div>

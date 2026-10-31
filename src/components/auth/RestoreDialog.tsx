@@ -16,6 +16,7 @@ import { isDevMock } from "@/lib/env";
 import { MIN_PASSWORD_LENGTH } from "@/lib/password";
 import { errorMessage, ipc, isAppError } from "@/lib/ipc";
 import { useVaultStore } from "@/stores/vault";
+import { useT } from "@/lib/i18n";
 
 export function RestoreDialog({
   open,
@@ -24,6 +25,7 @@ export function RestoreDialog({
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
+  const t = useT();
   const [path, setPath] = useState<string | null>(null);
   const [passphrase, setPassphrase] = useState("");
   const [needsPassphrase, setNeedsPassphrase] = useState(false);
@@ -105,11 +107,9 @@ export function RestoreDialog({
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-[440px]">
         <DialogHeader>
-          <DialogTitle>Restore from an export</DialogTitle>
+          <DialogTitle>{t("Restore from an export")}</DialogTitle>
           <DialogDescription>
-            Create this device’s vault from a Teerm export. The Master
-            Password you choose here protects the new vault.
-          </DialogDescription>
+            {t("Create this device’s vault from a Teerm export. The Master Password you choose here protects the new vault.")}</DialogDescription>
         </DialogHeader>
 
         <div className="flex items-center gap-2">
@@ -125,14 +125,13 @@ export function RestoreDialog({
             disabled={busy}
             onClick={() => void chooseFile()}
           >
-            Choose file
-          </Button>
+            {t("Choose file")}</Button>
         </div>
 
         {needsPassphrase && (
           <PasswordField
             id="restore-passphrase"
-            label="Export passphrase"
+            label={t("Export passphrase")}
             value={passphrase}
             onChange={setPassphrase}
             autoComplete="off"
@@ -142,7 +141,7 @@ export function RestoreDialog({
 
         <PasswordField
           id="restore-password"
-          label="New master password"
+          label={t("New master password")}
           value={password}
           onChange={setPassword}
           autoComplete="new-password"
@@ -150,12 +149,11 @@ export function RestoreDialog({
         />
         {password.length > 0 && password.length < MIN_PASSWORD_LENGTH && (
           <p className="text-[11px] text-destructive">
-            Use at least {MIN_PASSWORD_LENGTH} characters.
-          </p>
+            {t("Use at least {count} characters.", { count: MIN_PASSWORD_LENGTH })}</p>
         )}
         <PasswordField
           id="restore-password-confirm"
-          label="Confirm master password"
+          label={t("Confirm master password")}
           value={confirmation}
           onChange={setConfirmation}
           autoComplete="new-password"
@@ -164,8 +162,7 @@ export function RestoreDialog({
         />
         {mismatch && (
           <p className="text-[11px] text-destructive">
-            The passwords do not match.
-          </p>
+            {t("The passwords do not match.")}</p>
         )}
 
         {error && <p className="text-[11px] text-destructive">{error}</p>}
@@ -176,12 +173,10 @@ export function RestoreDialog({
             disabled={busy}
             onClick={() => handleOpenChange(false)}
           >
-            Cancel
-          </Button>
+            {t("Cancel")}</Button>
           <Button disabled={!canSubmit} onClick={() => void submit()}>
             {busy && <Loader2 className="animate-spin" data-icon="inline-start" />}
-            Restore vault
-          </Button>
+            {t("Restore vault")}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

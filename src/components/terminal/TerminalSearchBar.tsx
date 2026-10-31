@@ -4,6 +4,7 @@ import { ChevronDown, ChevronUp, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useT } from "@/lib/i18n";
 
 const SEARCH_DECORATIONS = {
   matchBackground: "#7ee2a833",
@@ -21,6 +22,7 @@ export function TerminalSearchBar({
   search: SearchAddon | null;
   onClose: () => void;
 }) {
+  const t = useT();
   const inputRef = useRef<HTMLInputElement>(null);
   const [query, setQuery] = useState("");
 
@@ -50,8 +52,8 @@ export function TerminalSearchBar({
       <Input
         ref={inputRef}
         value={query}
-        placeholder="Find in terminal"
-        aria-label="Find in terminal"
+        placeholder={t("Find in terminal")}
+        aria-label={t("Find in terminal")}
         className="h-6 w-48 text-[11px]"
         onChange={(event) => {
           setQuery(event.target.value);
@@ -78,7 +80,7 @@ export function TerminalSearchBar({
         type="button"
         variant="ghost"
         size="icon-xs"
-        aria-label="Previous match"
+        aria-label={t("Previous match")}
         onClick={() => find("previous")}
       >
         <ChevronUp />
@@ -87,7 +89,7 @@ export function TerminalSearchBar({
         type="button"
         variant="ghost"
         size="icon-xs"
-        aria-label="Next match"
+        aria-label={t("Next match")}
         onClick={() => find("next")}
       >
         <ChevronDown />
@@ -96,7 +98,7 @@ export function TerminalSearchBar({
         type="button"
         variant="ghost"
         size="icon-xs"
-        aria-label="Close search"
+        aria-label={t("Close search")}
         onClick={onClose}
       >
         <X />

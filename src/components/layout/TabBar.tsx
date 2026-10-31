@@ -20,6 +20,7 @@ import { cn } from "@/lib/utils";
 import { useInventoryStore } from "@/stores/inventory";
 import { useSessionsStore, type SessionStatus } from "@/stores/sessions";
 import { useUiStore } from "@/stores/ui";
+import { useT } from "@/lib/i18n";
 
 const STATUS_DOT: Record<SessionStatus, string> = {
   connecting: "bg-amber-400/90 animate-pulse",
@@ -38,6 +39,7 @@ const STATUS_LABEL: Record<SessionStatus, string> = {
 };
 
 export function TabBar() {
+  const t = useT();
   const selectedHostId = useUiStore((state) => state.selectedHostId);
   const selectHost = useUiStore((state) => state.selectHost);
   const activeSessionId = useUiStore((state) => state.activeSessionId);
@@ -60,8 +62,8 @@ export function TabBar() {
 
   function handleNewSessionOpen(open: boolean) {
     if (open && sortedHosts.length === 0) {
-      toast.info("No Hosts to connect", {
-        description: "Create a Host first, then open a session from here.",
+      toast.info(t("No Hosts to connect"), {
+        description: t("Create a Host first, then open a session from here."),
       });
       return;
     }
@@ -89,10 +91,9 @@ export function TabBar() {
             )}
             strokeWidth={2}
           />
-          <span className="truncate">Welcome</span>
+          <span className="truncate">{t("Welcome")}</span>
           <span className="ml-1 text-[10px] text-muted-foreground">
-            pinned
-          </span>
+            {t("pinned")}</span>
         </button>
 
         {hostTabVisible && (
@@ -104,7 +105,7 @@ export function TabBar() {
             <span className="max-w-[180px] truncate">{selectedHost.label}</span>
             <button
               type="button"
-              aria-label="Close tab"
+              aria-label={t("Close tab")}
               onClick={() => selectHost(null)}
               className="ml-1 rounded p-0.5 text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-foreground"
             >
@@ -164,7 +165,7 @@ export function TabBar() {
                 <Button
                   variant="ghost"
                   size="icon-xs"
-                  aria-label="New session"
+                  aria-label={t("New session")}
                   className="ml-0.5 shrink-0 text-muted-foreground hover:text-foreground"
                 >
                   <Plus />
@@ -172,12 +173,11 @@ export function TabBar() {
               </DropdownMenuTrigger>
             </TooltipTrigger>
             <TooltipContent side="bottom" sideOffset={6}>
-              New session
-            </TooltipContent>
+              {t("New session")}</TooltipContent>
           </Tooltip>
 
           <DropdownMenuContent align="start" sideOffset={6} className="w-64">
-            <DropdownMenuLabel>Connect to Host</DropdownMenuLabel>
+            <DropdownMenuLabel>{t("Connect to Host")}</DropdownMenuLabel>
             {sortedHosts.map((host) => (
               <DropdownMenuItem
                 key={host.id}
@@ -212,8 +212,10 @@ export function TabBar() {
           )}
         />
         {tabs.length > 0
-          ? `${tabs.length} active session${tabs.length === 1 ? "" : "s"}`
-          : "No active sessions"}
+          ? t(tabs.length === 1 ? "{count} active session" : "{count} active sessions", {
+              count: tabs.length,
+            })
+          : t("No active sessions")}
       </div>
     </div>
   );

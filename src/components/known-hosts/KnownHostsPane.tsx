@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import type { KnownHost } from "@/lib/ipc";
 import { useInventoryStore } from "@/stores/inventory";
 import { useUiStore } from "@/stores/ui";
+import { useT } from "@/lib/i18n";
 
 function formatDate(value: string): string {
   const date = new Date(value);
@@ -22,6 +23,7 @@ function formatDate(value: string): string {
 }
 
 export function KnownHostsPane() {
+  const t = useT();
   const knownHosts = useInventoryStore((state) => state.knownHosts);
   const deleteKnownHost = useInventoryStore((state) => state.deleteKnownHost);
   const setSection = useUiStore((state) => state.setSection);
@@ -38,11 +40,11 @@ export function KnownHostsPane() {
     setBusy(false);
 
     if (!result.ok) {
-      toast.error("Could not forget host", { description: result.error });
+      toast.error(t("Could not forget host"), { description: result.error });
       return;
     }
 
-    toast.success("Fingerprint forgotten");
+    toast.success(t("Fingerprint forgotten"));
     setDeleting(null);
   }
 
@@ -51,15 +53,11 @@ export function KnownHostsPane() {
       <div className="mx-auto w-full max-w-[760px] px-8 py-8">
         <header>
           <p className="text-[10px] font-medium tracking-[0.16em] text-primary uppercase">
-            Trust on first use
-          </p>
+            {t("Trust on first use")}</p>
           <h1 className="mt-1 text-2xl font-semibold tracking-tight">
-            Known Hosts
-          </h1>
+            {t("Known Hosts")}</h1>
           <p className="mt-1 max-w-[520px] text-[13px] leading-relaxed text-muted-foreground">
-            Server fingerprints you have trusted. A changed fingerprint blocks
-            the connection until you explicitly replace it.
-          </p>
+            {t("Server fingerprints you have trusted. A changed fingerprint blocks the connection until you explicitly replace it.")}</p>
         </header>
 
         {knownHosts.length === 0 ? (
@@ -68,27 +66,23 @@ export function KnownHostsPane() {
               <ShieldCheck className="size-5" strokeWidth={1.6} />
             </div>
             <h2 className="mt-4 text-[15px] font-semibold">
-              No known hosts yet
-            </h2>
+              {t("No known hosts yet")}</h2>
             <p className="mx-auto mt-1 max-w-[340px] text-[12px] leading-relaxed text-muted-foreground">
-              The first time you connect, Teerm shows the server fingerprint
-              and asks you to trust it.
-            </p>
+              {t("The first time you connect, Teerm shows the server fingerprint and asks you to trust it.")}</p>
             <Button
               size="sm"
               variant="outline"
               className="mt-4"
               onClick={() => setSection("settings")}
             >
-              Review security settings
-            </Button>
+              {t("Review security settings")}</Button>
           </div>
         ) : (
           <div className="mt-6 overflow-hidden rounded-xl border border-border/70">
             <div className="grid grid-cols-[1fr_120px_90px_40px] items-center gap-3 border-b border-border/70 bg-card/50 px-4 py-2 text-[10px] font-medium tracking-[0.12em] text-muted-foreground uppercase">
-              <span>Host</span>
-              <span>Key type</span>
-              <span>Added</span>
+              <span>{t("Host")}</span>
+              <span>{t("Key type")}</span>
+              <span>{t("Added")}</span>
               <span />
             </div>
             {knownHosts.map((known) => (
@@ -130,16 +124,15 @@ export function KnownHostsPane() {
         )}
 
         <p className="mt-6 pb-2 text-center text-[10px] text-muted-foreground">
-          Fingerprints live inside the encrypted Vault.
-        </p>
+          {t("Fingerprints live inside the encrypted Vault.")}</p>
       </div>
 
       <ConfirmDialog
         open={deleting !== null}
         onOpenChange={(open) => !open && setDeleting(null)}
         title={`Forget ${deleting?.address ?? "this host"}?`}
-        description="The next connection will ask you to trust this server again."
-        confirmLabel="Forget"
+        description={t("The next connection will ask you to trust this server again.")}
+        confirmLabel={t("Forget")}
         destructive
         busy={busy}
         onConfirm={handleDelete}

@@ -47,6 +47,7 @@ import type { SessionTab } from "@/stores/sessions";
 import { useSettingsStore } from "@/stores/settings";
 import { useSftpStore, type TransferRecord } from "@/stores/sftp";
 import { useUiStore } from "@/stores/ui";
+import { useT } from "@/lib/i18n";
 
 const MONTHS = [
   "Jan",
@@ -134,6 +135,7 @@ function FileRow({
   onRename: () => void;
   onRemove: () => void;
 }) {
+  const t = useT();
   return (
     <div
       role="button"
@@ -175,11 +177,10 @@ function FileRow({
         {entry.isSymlink ? (
           <span
             className="flex shrink-0 items-center gap-0.5 rounded border border-border/70 px-1 py-px text-[8px] font-medium tracking-wide text-muted-foreground uppercase"
-            title="Symbolic link"
+            title={t("Symbolic link")}
           >
             <Link2 className="size-2" />
-            link
-          </span>
+            {t("link")}</span>
         ) : null}
       </div>
 
@@ -200,7 +201,7 @@ function FileRow({
             variant="ghost"
             size="icon-xs"
             aria-label={`Rename ${entry.name}`}
-            title="Rename"
+            title={t("Rename")}
             onClick={(event) => {
               event.stopPropagation();
               onRename();
@@ -213,7 +214,7 @@ function FileRow({
             variant="ghost"
             size="icon-xs"
             aria-label={`Delete ${entry.name}`}
-            title="Delete"
+            title={t("Delete")}
             onClick={(event) => {
               event.stopPropagation();
               onRemove();
@@ -228,7 +229,7 @@ function FileRow({
               variant="ghost"
               size="icon-xs"
               aria-label={`Download ${entry.name}`}
-              title="Download"
+              title={t("Download")}
               onClick={(event) => {
                 event.stopPropagation();
                 onDownload();
@@ -314,6 +315,7 @@ function TransferRow({
 }
 
 export function SftpPanel({ tab }: { tab: SessionTab }) {
+  const t = useT();
   const width = useSftpStore((state) => state.width);
   const tabState = useSftpStore((state) => state.tabs[tab.id]);
   const transfers = useSftpStore((state) => state.transfers);
@@ -526,7 +528,7 @@ export function SftpPanel({ tab }: { tab: SessionTab }) {
       const paths = Array.isArray(selected) ? selected : [selected];
       await addUploads(tab.id, sessionId, paths);
     } catch (reason) {
-      toast.error("Could not open file picker", {
+      toast.error(t("Could not open file picker"), {
         description: errorMessage(reason),
       });
     }
@@ -534,7 +536,7 @@ export function SftpPanel({ tab }: { tab: SessionTab }) {
 
   async function requestDownload(entry: SftpEntry) {
     if (entry.isDir) {
-      toast.info("Folder download is not supported yet");
+      toast.info(t("Folder download is not supported yet"));
       return;
     }
 
@@ -565,14 +567,14 @@ export function SftpPanel({ tab }: { tab: SessionTab }) {
           .update({ download_dir: selected });
 
         if (!saved) {
-          toast.error("Could not save download folder", {
+          toast.error(t("Could not save download folder"), {
             description:
               useSettingsStore.getState().error ??
               "The download will use the selected folder anyway.",
           });
         }
       } catch (reason) {
-        toast.error("Could not open folder picker", {
+        toast.error(t("Could not open folder picker"), {
           description: errorMessage(reason),
         });
         return;
@@ -641,15 +643,15 @@ export function SftpPanel({ tab }: { tab: SessionTab }) {
 
   return (
     <aside
-      aria-label="SFTP browser"
+      aria-label={t("SFTP browser")}
       className="relative flex h-full min-h-0 shrink-0 flex-col border-l border-border/70 bg-sidebar"
       style={{ width }}
     >
       <div
         role="separator"
         aria-orientation="vertical"
-        aria-label="Resize SFTP panel"
-        title="Drag to resize"
+        aria-label={t("Resize SFTP panel")}
+        title={t("Drag to resize")}
         onPointerDown={beginResize}
         onDoubleClick={() => setWidth(360)}
         className="absolute top-0 -left-[2px] z-20 h-full w-[4px] cursor-col-resize transition-colors hover:bg-primary/35 active:bg-primary/50"
@@ -670,8 +672,8 @@ export function SftpPanel({ tab }: { tab: SessionTab }) {
           type="button"
           variant="ghost"
           size="icon-xs"
-          aria-label="Refresh folder"
-          title="Refresh"
+          aria-label={t("Refresh folder")}
+          title={t("Refresh")}
           disabled={!sessionId || loading}
           onClick={() => {
             if (sessionId) {
@@ -686,8 +688,8 @@ export function SftpPanel({ tab }: { tab: SessionTab }) {
           type="button"
           variant="ghost"
           size="icon-xs"
-          aria-label="Upload files"
-          title="Upload files"
+          aria-label={t("Upload files")}
+          title={t("Upload files")}
           disabled={!sessionId}
           onClick={() => void requestUpload()}
           className="text-muted-foreground hover:text-foreground"
@@ -698,8 +700,8 @@ export function SftpPanel({ tab }: { tab: SessionTab }) {
           type="button"
           variant="ghost"
           size="icon-xs"
-          aria-label="New folder"
-          title="New folder"
+          aria-label={t("New folder")}
+          title={t("New folder")}
           disabled={!sessionId}
           onClick={() => {
             setNewFolderName("");
@@ -715,7 +717,7 @@ export function SftpPanel({ tab }: { tab: SessionTab }) {
         ref={fileInputRef}
         type="file"
         multiple
-        aria-label="Upload files"
+        aria-label={t("Upload files")}
         className="hidden"
         onChange={(event) => {
           const files = Array.from(event.target.files ?? []);
@@ -738,19 +740,17 @@ export function SftpPanel({ tab }: { tab: SessionTab }) {
           </div>
           <div>
             <p className="text-[12px] font-medium text-foreground/90">
-              SFTP unavailable
-            </p>
+              {t("SFTP unavailable")}</p>
             <p className="mt-1 text-[10.5px] leading-relaxed text-muted-foreground">
-              Reconnect this session to browse remote files.
-            </p>
+              {t("Reconnect this session to browse remote files.")}</p>
           </div>
         </div>
       ) : (
         <>
           <div className="grid h-6 shrink-0 grid-cols-[minmax(0,1fr)_70px_100px] items-center gap-2 border-b border-border/45 px-2 text-[8.5px] font-medium tracking-[0.12em] text-muted-foreground/60 uppercase">
-            <span>Name</span>
-            <span className="text-right">Size</span>
-            <span className="text-right">Modified</span>
+            <span>{t("Name")}</span>
+            <span className="text-right">{t("Size")}</span>
+            <span className="text-right">{t("Modified")}</span>
           </div>
 
           {error && entries.length > 0 ? (
@@ -771,8 +771,7 @@ export function SftpPanel({ tab }: { tab: SessionTab }) {
                 }}
                 className="h-5 px-1.5 text-[9.5px] text-destructive hover:bg-destructive/15 hover:text-destructive"
               >
-                Retry
-              </Button>
+                {t("Retry")}</Button>
             </div>
           ) : null}
 
@@ -783,7 +782,7 @@ export function SftpPanel({ tab }: { tab: SessionTab }) {
             {loading && entries.length === 0 ? (
               <div className="flex h-full min-h-[120px] flex-col items-center justify-center gap-2 text-muted-foreground">
                 <Loader2 className="size-4 animate-spin text-primary" />
-                <span className="text-[10.5px]">Loading folder…</span>
+                <span className="text-[10.5px]">{t("Loading folder…")}</span>
               </div>
             ) : error && entries.length === 0 ? (
               <div className="flex h-full min-h-[140px] flex-col items-center justify-center gap-2.5 px-5 text-center">
@@ -803,8 +802,7 @@ export function SftpPanel({ tab }: { tab: SessionTab }) {
                   }}
                 >
                   <RefreshCw data-icon="inline-start" />
-                  Retry
-                </Button>
+                  {t("Retry")}</Button>
               </div>
             ) : (
               <>
@@ -812,7 +810,7 @@ export function SftpPanel({ tab }: { tab: SessionTab }) {
                   <div
                     role="button"
                     tabIndex={0}
-                    title="Parent folder"
+                    title={t("Parent folder")}
                     onDoubleClick={() => {
                       if (sessionId) {
                         void goUp(tab.id, sessionId);
@@ -860,8 +858,7 @@ export function SftpPanel({ tab }: { tab: SessionTab }) {
                     </p>
                     {entries.length > 0 ? (
                       <p className="max-w-[220px] text-[9.5px] leading-relaxed text-muted-foreground/70">
-                        Hidden files are turned off. Enable them in Settings.
-                      </p>
+                        {t("Hidden files are turned off. Enable them in Settings.")}</p>
                     ) : null}
                   </div>
                 ) : null}
@@ -875,8 +872,7 @@ export function SftpPanel({ tab }: { tab: SessionTab }) {
         <footer className="shrink-0 border-t border-border/60 bg-sidebar/45">
           <div className="flex h-7 items-center justify-between gap-2 border-b border-border/45 px-3">
             <span className="text-[9.5px] font-medium text-muted-foreground">
-              {tabTransfers.length} transfer
-              {tabTransfers.length === 1 ? "" : "s"}
+              {tabTransfers.length} {t("transfer")}{tabTransfers.length === 1 ? "" : "s"}
               {aggregatePercent !== null ? (
                 <span className="ml-2 font-mono text-primary/90 tabular-nums">
                   {aggregatePercent}%
@@ -891,8 +887,7 @@ export function SftpPanel({ tab }: { tab: SessionTab }) {
               onClick={() => clearFinished(tab.id)}
               className="h-5 px-1.5 text-[9px] text-muted-foreground hover:text-foreground"
             >
-              Clear finished
-            </Button>
+              {t("Clear finished")}</Button>
           </div>
           <div className="max-h-[130px] overflow-y-auto">
             {tabTransfers.map((transfer) => (
@@ -910,7 +905,7 @@ export function SftpPanel({ tab }: { tab: SessionTab }) {
       {dragOver ? (
         <div className="pointer-events-none absolute inset-2 z-30 flex flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed border-primary/55 bg-primary/10 text-primary backdrop-blur-[1px]">
           <Upload className="size-5" />
-          <span className="text-[11px] font-medium">Drop to upload</span>
+          <span className="text-[11px] font-medium">{t("Drop to upload")}</span>
           <span className="max-w-[240px] truncate font-mono text-[9.5px] text-primary/70">
             {path}
           </span>
@@ -929,9 +924,9 @@ export function SftpPanel({ tab }: { tab: SessionTab }) {
         <DialogContent className="sm:max-w-[360px]">
           <form onSubmit={submitNewFolder} className="flex flex-col gap-4">
             <DialogHeader>
-              <DialogTitle>New folder</DialogTitle>
+              <DialogTitle>{t("New folder")}</DialogTitle>
               <DialogDescription>
-                Create a folder inside{" "}
+                {t("Create a folder inside")}{" "}
                 <span className="font-mono text-[12px]">{path}</span>.
               </DialogDescription>
             </DialogHeader>
@@ -939,8 +934,8 @@ export function SftpPanel({ tab }: { tab: SessionTab }) {
               autoFocus
               value={newFolderName}
               onChange={(event) => setNewFolderName(event.target.value)}
-              placeholder="Folder name"
-              aria-label="Folder name"
+              placeholder={t("Folder name")}
+              aria-label={t("Folder name")}
               spellCheck={false}
             />
             <DialogFooter>
@@ -950,8 +945,7 @@ export function SftpPanel({ tab }: { tab: SessionTab }) {
                 onClick={() => setNewFolderOpen(false)}
                 disabled={dialogBusy}
               >
-                Cancel
-              </Button>
+                {t("Cancel")}</Button>
               <Button
                 type="submit"
                 disabled={dialogBusy || !newFolderName.trim()}
@@ -959,8 +953,7 @@ export function SftpPanel({ tab }: { tab: SessionTab }) {
                 {dialogBusy ? (
                   <Loader2 className="animate-spin" data-icon="inline-start" />
                 ) : null}
-                Create
-              </Button>
+                {t("Create")}</Button>
             </DialogFooter>
           </form>
         </DialogContent>
@@ -977,7 +970,7 @@ export function SftpPanel({ tab }: { tab: SessionTab }) {
         <DialogContent className="sm:max-w-[360px]">
           <form onSubmit={submitRename} className="flex flex-col gap-4">
             <DialogHeader>
-              <DialogTitle>Rename</DialogTitle>
+              <DialogTitle>{t("Rename")}</DialogTitle>
               <DialogDescription className="truncate">
                 {renameTarget?.name}
               </DialogDescription>
@@ -986,7 +979,7 @@ export function SftpPanel({ tab }: { tab: SessionTab }) {
               autoFocus
               value={renameName}
               onChange={(event) => setRenameName(event.target.value)}
-              aria-label="New name"
+              aria-label={t("New name")}
               spellCheck={false}
             />
             <DialogFooter>
@@ -996,8 +989,7 @@ export function SftpPanel({ tab }: { tab: SessionTab }) {
                 onClick={() => setRenameTarget(null)}
                 disabled={dialogBusy}
               >
-                Cancel
-              </Button>
+                {t("Cancel")}</Button>
               <Button
                 type="submit"
                 disabled={
@@ -1009,8 +1001,7 @@ export function SftpPanel({ tab }: { tab: SessionTab }) {
                 {dialogBusy ? (
                   <Loader2 className="animate-spin" data-icon="inline-start" />
                 ) : null}
-                Rename
-              </Button>
+                {t("Rename")}</Button>
             </DialogFooter>
           </form>
         </DialogContent>
@@ -1023,16 +1014,15 @@ export function SftpPanel({ tab }: { tab: SessionTab }) {
             setDeleteTarget(null);
           }
         }}
-        title={deleteTarget?.isDir ? "Delete folder" : "Delete file"}
+        title={deleteTarget?.isDir ? t("Delete folder") : t("Delete file")}
         description={
           <>
             <span className="font-medium text-foreground">
               {deleteTarget?.name}
             </span>{" "}
-            will be removed from the remote server. This cannot be undone.
-          </>
+            {t("will be removed from the remote server. This cannot be undone.")}</>
         }
-        confirmLabel="Delete"
+        confirmLabel={t("Delete")}
         destructive
         busy={dialogBusy}
         onConfirm={confirmDelete}

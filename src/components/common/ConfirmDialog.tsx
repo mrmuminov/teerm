@@ -10,6 +10,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { useT } from "@/lib/i18n";
 
 type ConfirmDialogProps = {
   open: boolean;
@@ -32,6 +33,7 @@ export function ConfirmDialog({
   busy = false,
   onConfirm,
 }: ConfirmDialogProps) {
+  const t = useT();
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[400px]">
@@ -45,8 +47,7 @@ export function ConfirmDialog({
             onClick={() => onOpenChange(false)}
             disabled={busy}
           >
-            Cancel
-          </Button>
+            {t("Cancel")}</Button>
           <Button
             variant={destructive ? "destructive" : "default"}
             onClick={() => void onConfirm()}

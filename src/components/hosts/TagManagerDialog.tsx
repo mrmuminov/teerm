@@ -15,6 +15,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { Tag } from "@/lib/ipc";
 import { useInventoryStore } from "@/stores/inventory";
+import { useT } from "@/lib/i18n";
 
 const DEFAULT_COLOR = "#7ee2a8";
 
@@ -27,6 +28,7 @@ export function TagManagerDialog({
   open,
   onOpenChange,
 }: TagManagerDialogProps) {
+  const t = useT();
   const tags = useInventoryStore((state) => state.tags);
   const createTag = useInventoryStore((state) => state.createTag);
   const updateTag = useInventoryStore((state) => state.updateTag);
@@ -64,7 +66,7 @@ export function TagManagerDialog({
     setBusy(false);
 
     if (!result.ok) {
-      toast.error("Could not save tag", { description: result.error });
+      toast.error(t("Could not save tag"), { description: result.error });
       return;
     }
 
@@ -81,11 +83,11 @@ export function TagManagerDialog({
     setBusy(false);
 
     if (!result.ok) {
-      toast.error("Could not delete tag", { description: result.error });
+      toast.error(t("Could not delete tag"), { description: result.error });
       return;
     }
 
-    toast.success("Tag deleted");
+    toast.success(t("Tag deleted"));
     setDeleting(null);
     if (editing?.id === deleting.id) {
       reset();
@@ -97,10 +99,9 @@ export function TagManagerDialog({
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="sm:max-w-[440px]">
           <DialogHeader>
-            <DialogTitle>Tags</DialogTitle>
+            <DialogTitle>{t("Tags")}</DialogTitle>
             <DialogDescription>
-              Labels can be shared by any number of Hosts.
-            </DialogDescription>
+              {t("Labels can be shared by any number of Hosts.")}</DialogDescription>
           </DialogHeader>
 
           <form onSubmit={handleSubmit} className="flex items-end gap-2">
@@ -112,13 +113,13 @@ export function TagManagerDialog({
                 id="tag-name"
                 value={name}
                 onChange={(event) => setName(event.target.value)}
-                placeholder="production"
+                placeholder={t("production")}
                 maxLength={32}
                 required
               />
             </div>
             <div className="grid gap-1.5">
-              <Label htmlFor="tag-color">Color</Label>
+              <Label htmlFor="tag-color">{t("Color")}</Label>
               <input
                 id="tag-color"
                 type="color"
@@ -140,7 +141,7 @@ export function TagManagerDialog({
                 type="button"
                 variant="ghost"
                 size="icon-sm"
-                aria-label="Cancel edit"
+                aria-label={t("Cancel edit")}
                 onClick={reset}
               >
                 <X />
@@ -151,8 +152,7 @@ export function TagManagerDialog({
           <div className="max-h-[280px] space-y-1 overflow-y-auto">
             {tags.length === 0 ? (
               <p className="rounded-lg border border-dashed border-border/70 px-3 py-6 text-center text-[11px] text-muted-foreground">
-                No tags yet.
-              </p>
+                {t("No tags yet.")}</p>
             ) : (
               tags.map((tag) => (
                 <div
@@ -167,7 +167,7 @@ export function TagManagerDialog({
                     {tag.name}
                   </span>
                   <span className="text-[10px] tabular-nums text-muted-foreground">
-                    {tag.host_count} host{tag.host_count === 1 ? "" : "s"}
+                    {tag.host_count} {t("host")}{tag.host_count === 1 ? "" : "s"}
                   </span>
                   <Button
                     variant="ghost"
@@ -197,8 +197,8 @@ export function TagManagerDialog({
         open={deleting !== null}
         onOpenChange={(next) => !next && setDeleting(null)}
         title={`Delete tag "${deleting?.name ?? ""}"?`}
-        description="The tag is removed from every Host. Hosts themselves are untouched."
-        confirmLabel="Delete tag"
+        description={t("The tag is removed from every Host. Hosts themselves are untouched.")}
+        confirmLabel={t("Delete tag")}
         destructive
         busy={busy}
         onConfirm={handleDelete}

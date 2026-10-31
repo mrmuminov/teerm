@@ -17,6 +17,7 @@ import { isDevMock } from "@/lib/env";
 import { MIN_PASSWORD_LENGTH } from "@/lib/password";
 import { errorMessage, ipc, type ExportMode } from "@/lib/ipc";
 import { cn } from "@/lib/utils";
+import { useT } from "@/lib/i18n";
 
 const MODES: { value: ExportMode; title: string; description: string }[] = [
   {
@@ -40,6 +41,7 @@ export function ExportDialog({
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
+  const t = useT();
   const [mode, setMode] = useState<ExportMode>("full");
   const [passphrase, setPassphrase] = useState("");
   const [confirmation, setConfirmation] = useState("");
@@ -89,7 +91,7 @@ export function ExportDialog({
       }
 
       await ipc.vaultExport(path, mode, full ? passphrase : null);
-      toast.success("Vault exported", { description: path });
+      toast.success(t("Vault exported"), { description: path });
       setBusy(false);
       handleOpenChange(false);
     } catch (caught) {
@@ -102,10 +104,9 @@ export function ExportDialog({
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-[440px]">
         <DialogHeader>
-          <DialogTitle>Export Vault</DialogTitle>
+          <DialogTitle>{t("Export Vault")}</DialogTitle>
           <DialogDescription>
-            Keep a copy of your Hosts, Keys and settings outside Teerm.
-          </DialogDescription>
+            {t("Keep a copy of your Hosts, Keys and settings outside Teerm.")}</DialogDescription>
         </DialogHeader>
 
         <div className="grid gap-2">
@@ -135,7 +136,7 @@ export function ExportDialog({
           <div className="grid gap-3">
             <PasswordField
               id="export-passphrase"
-              label="Export passphrase"
+              label={t("Export passphrase")}
               value={passphrase}
               onChange={setPassphrase}
               autoComplete="new-password"
@@ -143,7 +144,7 @@ export function ExportDialog({
             />
             <PasswordField
               id="export-passphrase-confirm"
-              label="Confirm passphrase"
+              label={t("Confirm passphrase")}
               value={confirmation}
               onChange={setConfirmation}
               autoComplete="new-password"
@@ -153,13 +154,11 @@ export function ExportDialog({
             {passphrase.length > 0 &&
               passphrase.length < MIN_PASSWORD_LENGTH && (
                 <p className="text-[11px] text-destructive">
-                  Use at least {MIN_PASSWORD_LENGTH} characters.
-                </p>
+                  {t("Use at least {count} characters.", { count: MIN_PASSWORD_LENGTH })}</p>
               )}
             {mismatch && (
               <p className="text-[11px] text-destructive">
-                The passphrases do not match.
-              </p>
+                {t("The passphrases do not match.")}</p>
             )}
           </div>
         )}
@@ -172,12 +171,10 @@ export function ExportDialog({
             disabled={busy}
             onClick={() => handleOpenChange(false)}
           >
-            Cancel
-          </Button>
+            {t("Cancel")}</Button>
           <Button disabled={!canSubmit} onClick={() => void submit()}>
             {busy && <Loader2 className="animate-spin" data-icon="inline-start" />}
-            Export
-          </Button>
+            {t("Export")}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

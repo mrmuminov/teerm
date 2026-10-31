@@ -13,6 +13,7 @@ import type { PortForward } from "@/lib/ipc";
 import { cn } from "@/lib/utils";
 import { useForwardsStore, type ForwardRuntime } from "@/stores/forwards";
 import { useInventoryStore } from "@/stores/inventory";
+import { useT } from "@/lib/i18n";
 
 const EMPTY_FORWARDS: PortForward[] = [];
 const EMPTY_RUNTIME: Record<string, ForwardRuntime> = {};
@@ -32,6 +33,7 @@ export function ForwardsMenu({
   sessionId: string;
   connected: boolean;
 }) {
+  const t = useT();
   const forwards = useInventoryStore(
     (state) => state.forwards[hostId] ?? EMPTY_FORWARDS,
   );
@@ -68,7 +70,7 @@ export function ForwardsMenu({
           type="button"
           variant="ghost"
           size="xs"
-          aria-label="Port forwards"
+          aria-label={t("Port forwards")}
           disabled={!connected}
           className={cn(
             "h-6 gap-1.5 rounded-md px-2 text-[10.5px] font-medium",
@@ -78,11 +80,11 @@ export function ForwardsMenu({
           )}
         >
           <ArrowLeftRight data-icon="inline-start" />
-          Forwards{activeCount > 0 ? ` (${activeCount})` : ""}
+          {t("Forwards")}{activeCount > 0 ? ` (${activeCount})` : ""}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="min-w-64">
-        <DropdownMenuLabel>Port forwards</DropdownMenuLabel>
+        <DropdownMenuLabel>{t("Port forwards")}</DropdownMenuLabel>
         {forwards.map((forward) => {
           const current = runtime[forward.id];
           return (

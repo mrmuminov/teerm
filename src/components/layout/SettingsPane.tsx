@@ -30,6 +30,7 @@ import { isDevMock } from "@/lib/env";
 import { errorMessage, type Settings } from "@/lib/ipc";
 import { useSettingsStore } from "@/stores/settings";
 import { useVaultStore } from "@/stores/vault";
+import { LANGUAGES, normalizeLanguage, useT } from "@/lib/i18n";
 
 function SettingsSection({
   icon: Icon,
@@ -83,6 +84,7 @@ function SettingsRow({
 }
 
 export function SettingsPane() {
+  const t = useT();
   const settings = useSettingsStore((state) => state.settings);
   const appInfo = useSettingsStore((state) => state.appInfo);
   const loading = useSettingsStore((state) => state.loading);
@@ -100,7 +102,7 @@ export function SettingsPane() {
       toast.success(message);
     } else {
       const reason = useSettingsStore.getState().error;
-      toast.error("Could not save settings", {
+      toast.error(t("Could not save settings"), {
         description: reason ?? "Try again in a moment.",
       });
     }
@@ -108,8 +110,8 @@ export function SettingsPane() {
 
   async function chooseDownloadFolder() {
     if (isDevMock()) {
-      toast.info("Folder picker is available in the desktop app", {
-        description: "The SFTP panel uses the mock Downloads folder here.",
+      toast.info(t("Folder picker is available in the desktop app"), {
+        description: t("The SFTP panel uses the mock Downloads folder here."),
       });
       return;
     }
@@ -126,7 +128,7 @@ export function SettingsPane() {
         await save({ download_dir: selected }, "Download folder updated");
       }
     } catch (reason) {
-      toast.error("Could not open folder picker", {
+      toast.error(t("Could not open folder picker"), {
         description: errorMessage(reason),
       });
     }
@@ -138,12 +140,12 @@ export function SettingsPane() {
         {loading ? (
           <div className="flex flex-col items-center gap-3 text-muted-foreground">
             <Loader2 className="size-5 animate-spin text-primary" />
-            <p className="text-xs">Loading settings…</p>
+            <p className="text-xs">{t("Loading settings…")}</p>
           </div>
         ) : (
           <Alert variant="destructive" className="max-w-md">
             <TriangleAlert />
-            <AlertTitle>Could not load settings</AlertTitle>
+            <AlertTitle>{t("Could not load settings")}</AlertTitle>
             <AlertDescription className="flex flex-col gap-3">
               {error ?? "Unknown error."}
               <Button
@@ -152,8 +154,7 @@ export function SettingsPane() {
                 className="w-fit"
                 onClick={() => void load(true)}
               >
-                Try again
-              </Button>
+                {t("Try again")}</Button>
             </AlertDescription>
           </Alert>
         )}
@@ -166,52 +167,47 @@ export function SettingsPane() {
       <div className="mx-auto w-full max-w-[720px] px-8 py-8">
         <header>
           <p className="text-[10px] font-medium tracking-[0.16em] text-primary uppercase">
-            Preferences
-          </p>
+            {t("Preferences")}</p>
           <h1 className="mt-1 text-2xl font-semibold tracking-tight">
-            Settings
-          </h1>
+            {t("Settings")}</h1>
           <p className="mt-1 text-[13px] text-muted-foreground">
-            Stored on this device only. Nothing is synced anywhere.
-          </p>
+            {t("Stored on this device only. Nothing is synced anywhere.")}</p>
         </header>
 
         <div className="mt-6 space-y-4">
           <SettingsSection
             icon={ShieldCheck}
-            title="Vault & security"
-            description="Your encrypted store for hosts, keys, and secrets."
+            title={t("Vault & security")}
+            description={t("Your encrypted store for hosts, keys, and secrets.")}
           >
             <SettingsRow
-              label="Vault status"
-              description="The master key is held in memory while unlocked."
+              label={t("Vault status")}
+              description={t("The master key is held in memory while unlocked.")}
             >
               <Badge className="border border-primary/25 bg-primary/10 text-primary">
                 <span className="size-1.5 rounded-full bg-primary" />
-                Unlocked
-              </Badge>
+                {t("Unlocked")}</Badge>
             </SettingsRow>
 
             <Separator />
 
             <SettingsRow
-              label="Master Password"
-              description="Re-encrypt the Vault with a new password."
+              label={t("Master Password")}
+              description={t("Re-encrypt the Vault with a new password.")}
             >
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => setChangePasswordOpen(true)}
               >
-                Change
-              </Button>
+                {t("Change")}</Button>
             </SettingsRow>
 
             <Separator />
 
             <SettingsRow
-              label="Export & import"
-              description="Back up the Vault to a file, or load one from another device."
+              label={t("Export & import")}
+              description={t("Back up the Vault to a file, or load one from another device.")}
             >
               <div className="flex items-center gap-2">
                 <Button
@@ -219,23 +215,21 @@ export function SettingsPane() {
                   size="sm"
                   onClick={() => setImportOpen(true)}
                 >
-                  Import
-                </Button>
+                  {t("Import")}</Button>
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => setExportOpen(true)}
                 >
-                  Export
-                </Button>
+                  {t("Export")}</Button>
               </div>
             </SettingsRow>
 
             <Separator />
 
             <SettingsRow
-              label="Auto-lock"
-              description="Lock the vault after this much inactivity."
+              label={t("Auto-lock")}
+              description={t("Lock the vault after this much inactivity.")}
             >
               <Select
                 value={String(settings.auto_lock_minutes)}
@@ -250,10 +244,10 @@ export function SettingsPane() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="5">5 minutes</SelectItem>
-                  <SelectItem value="15">15 minutes</SelectItem>
-                  <SelectItem value="30">30 minutes</SelectItem>
-                  <SelectItem value="60">1 hour</SelectItem>
+                  <SelectItem value="5">{t("5 minutes")}</SelectItem>
+                  <SelectItem value="15">{t("15 minutes")}</SelectItem>
+                  <SelectItem value="30">{t("30 minutes")}</SelectItem>
+                  <SelectItem value="60">{t("1 hour")}</SelectItem>
                 </SelectContent>
               </Select>
             </SettingsRow>
@@ -261,8 +255,8 @@ export function SettingsPane() {
             <Separator />
 
             <SettingsRow
-              label="Strict host key checking"
-              description="Refuse servers that are not already trusted."
+              label={t("Strict host key checking")}
+              description={t("Refuse servers that are not already trusted.")}
             >
               <Switch
                 checked={settings.strict_host_key_checking}
@@ -283,9 +277,7 @@ export function SettingsPane() {
               <div className="flex items-start gap-2">
                 <TriangleAlert className="mt-0.5 size-3.5 shrink-0 text-amber-500/90" />
                 <p className="max-w-[360px] text-[11px] leading-relaxed text-muted-foreground">
-                  There is no master password recovery. Keep an encrypted
-                  export somewhere safe.
-                </p>
+                  {t("There is no master password recovery. Keep an encrypted export somewhere safe.")}</p>
               </div>
               <Button
                 variant="outline"
@@ -293,19 +285,18 @@ export function SettingsPane() {
                 onClick={() => void lock()}
               >
                 <LockKeyhole data-icon="inline-start" />
-                Lock now
-              </Button>
+                {t("Lock now")}</Button>
             </div>
           </SettingsSection>
 
           <SettingsSection
             icon={Info}
-            title="Appearance & language"
-            description="Interface preferences for this device."
+            title={t("Appearance & language")}
+            description={t("Interface preferences for this device.")}
           >
             <SettingsRow
-              label="Theme"
-              description="Choose a light or dark interface, or follow the system."
+              label={t("Theme")}
+              description={t("Choose a light or dark interface, or follow the system.")}
             >
               <Select
                 value={settings.app_theme}
@@ -317,9 +308,9 @@ export function SettingsPane() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="dark">Dark</SelectItem>
-                  <SelectItem value="light">Light</SelectItem>
-                  <SelectItem value="system">System</SelectItem>
+                  <SelectItem value="dark">{t("Dark")}</SelectItem>
+                  <SelectItem value="light">{t("Light")}</SelectItem>
+                  <SelectItem value="system">{t("System")}</SelectItem>
                 </SelectContent>
               </Select>
             </SettingsRow>
@@ -327,23 +318,37 @@ export function SettingsPane() {
             <Separator />
 
             <SettingsRow
-              label="Language"
-              description="Uzbek and Russian are planned; the UI is i18n-ready."
+              label={t("Language")}
+              description={t("Language of the interface. Untranslated text stays in English.")}
             >
-              <Badge variant="secondary" className="text-muted-foreground">
-                English
-              </Badge>
+              <Select
+                value={normalizeLanguage(settings.language)}
+                onValueChange={(value) =>
+                  void save({ language: value }, t("Language updated"))
+                }
+              >
+                <SelectTrigger size="sm" className="w-[140px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {LANGUAGES.map((language) => (
+                    <SelectItem key={language.value} value={language.value}>
+                      {language.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </SettingsRow>
           </SettingsSection>
 
           <SettingsSection
             icon={FolderTree}
-            title="SFTP"
-            description="Remote file browser and transfer preferences."
+            title={t("SFTP")}
+            description={t("Remote file browser and transfer preferences.")}
           >
             <SettingsRow
-              label="Show hidden files"
-              description="Include dotfiles in remote folder listings."
+              label={t("Show hidden files")}
+              description={t("Include dotfiles in remote folder listings.")}
             >
               <Switch
                 checked={settings.sftp_show_hidden}
@@ -359,8 +364,8 @@ export function SettingsPane() {
             <Separator />
 
             <SettingsRow
-              label="Download folder"
-              description="Where files downloaded from the SFTP panel are saved."
+              label={t("Download folder")}
+              description={t("Where files downloaded from the SFTP panel are saved.")}
             >
               <div className="flex max-w-[320px] items-center gap-2">
                 <span
@@ -374,20 +379,19 @@ export function SettingsPane() {
                   size="sm"
                   onClick={() => void chooseDownloadFolder()}
                 >
-                  Change
-                </Button>
+                  {t("Change")}</Button>
               </div>
             </SettingsRow>
           </SettingsSection>
 
           <SettingsSection
             icon={Info}
-            title="About"
-            description="Build and storage details."
+            title={t("About")}
+            description={t("Build and storage details.")}
           >
             <SettingsRow
-              label="Version"
-              description="Teerm desktop client."
+              label={t("Version")}
+              description={t("Teerm desktop client.")}
             >
               <span className="font-mono text-[11px] text-muted-foreground">
                 {appInfo ? `v${appInfo.version}` : "—"}
@@ -397,7 +401,7 @@ export function SettingsPane() {
             <Separator />
 
             <SettingsRow
-              label="Platform"
+              label={t("Platform")}
               description={appInfo?.os ?? "Unknown platform"}
             >
               <span className="font-mono text-[11px] capitalize text-muted-foreground">
@@ -408,8 +412,8 @@ export function SettingsPane() {
             <Separator />
 
             <SettingsRow
-              label="Vault format"
-              description="vault.teermvault · Argon2id · XChaCha20-Poly1305"
+              label={t("Vault format")}
+              description={t("vault.teermvault · Argon2id · XChaCha20-Poly1305")}
             >
               <span className="font-mono text-[11px] text-muted-foreground">
                 v1
@@ -419,8 +423,7 @@ export function SettingsPane() {
         </div>
 
         <p className="mt-6 pb-2 text-center text-[10px] text-muted-foreground">
-          Teerm is local-first by design. No account, no telemetry.
-        </p>
+          {t("Teerm is local-first by design. No account, no telemetry.")}</p>
       </div>
 
       <ExportDialog open={exportOpen} onOpenChange={setExportOpen} />

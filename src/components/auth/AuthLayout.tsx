@@ -2,12 +2,14 @@ import type { ReactNode } from "react";
 import { LockKeyhole } from "lucide-react";
 
 import { Logo } from "@/components/Logo";
+import { useT } from "@/lib/i18n";
 
 type AuthLayoutProps = {
   children: ReactNode;
 };
 
 export function AuthLayout({ children }: AuthLayoutProps) {
+  const t = useT();
   return (
     <div className="auth-backdrop h-full overflow-y-auto bg-background">
       <div className="flex min-h-full flex-col">
@@ -21,7 +23,7 @@ export function AuthLayout({ children }: AuthLayoutProps) {
 
         <footer className="auth-footer flex h-10 shrink-0 items-center justify-center gap-1.5 text-[11px] text-muted-foreground">
           <LockKeyhole className="size-3.5" />
-          <span>Local-first · encrypted at rest</span>
+          <span>{t("Local-first · encrypted at rest")}</span>
         </footer>
       </div>
     </div>

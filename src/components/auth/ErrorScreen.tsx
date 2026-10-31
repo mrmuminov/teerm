@@ -14,6 +14,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { useT } from "@/lib/i18n";
 
 type ErrorScreenProps = {
   message: string | null;
@@ -21,6 +22,7 @@ type ErrorScreenProps = {
 };
 
 export function ErrorScreen({ message, onRetry }: ErrorScreenProps) {
+  const t = useT();
   return (
     <AuthLayout>
       <Card className="border border-border/60 bg-card/80 shadow-2xl shadow-black/40 backdrop-blur">
@@ -28,16 +30,15 @@ export function ErrorScreen({ message, onRetry }: ErrorScreenProps) {
           <div className="mb-1 flex size-10 items-center justify-center rounded-xl bg-destructive/10 text-destructive ring-1 ring-destructive/20">
             <ShieldAlert className="size-5" />
           </div>
-          <CardTitle className="text-xl">Teerm could not start</CardTitle>
+          <CardTitle className="text-xl">{t("Teerm could not start")}</CardTitle>
           <CardDescription>
-            The local vault could not be read. Your data has not been modified.
-          </CardDescription>
+            {t("The local vault could not be read. Your data has not been modified.")}</CardDescription>
         </CardHeader>
 
         <CardContent className="grid gap-4 pt-2">
           <Alert variant="destructive">
             <ShieldAlert />
-            <AlertTitle>Startup error</AlertTitle>
+            <AlertTitle>{t("Startup error")}</AlertTitle>
             <AlertDescription>
               {message ?? "Unknown error. Please restart the app."}
             </AlertDescription>
@@ -45,8 +46,7 @@ export function ErrorScreen({ message, onRetry }: ErrorScreenProps) {
 
           <Button onClick={onRetry} className="w-full" size="lg">
             <RefreshCw />
-            Try again
-          </Button>
+            {t("Try again")}</Button>
         </CardContent>
       </Card>
     </AuthLayout>

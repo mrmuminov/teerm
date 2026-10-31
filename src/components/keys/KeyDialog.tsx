@@ -16,8 +16,10 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useInventoryStore } from "@/stores/inventory";
 import { useUiStore } from "@/stores/ui";
+import { useT } from "@/lib/i18n";
 
 export function KeyDialog() {
+  const t = useT();
   const dialog = useUiStore((state) => state.keyDialog);
   const closeKeyDialog = useUiStore((state) => state.closeKeyDialog);
   const importKey = useInventoryStore((state) => state.importKey);
@@ -83,7 +85,7 @@ export function KeyDialog() {
 
         <form onSubmit={handleSubmit} className="grid gap-4">
           <div className="grid gap-1.5">
-            <Label htmlFor="key-name">Name</Label>
+            <Label htmlFor="key-name">{t("Name")}</Label>
             <Input
               id="key-name"
               value={name}
@@ -98,7 +100,7 @@ export function KeyDialog() {
           {isImport ? (
             <>
               <div className="grid gap-1.5">
-                <Label htmlFor="key-material">Private key</Label>
+                <Label htmlFor="key-material">{t("Private key")}</Label>
                 <Textarea
                   id="key-material"
                   value={privateKey}
@@ -109,15 +111,13 @@ export function KeyDialog() {
                   className="min-h-[140px] font-mono text-[11px]"
                 />
                 <p className="text-[10px] text-muted-foreground">
-                  ed25519, RSA, and ECDSA are supported. PuTTY .ppk files are
-                  not.
-                </p>
+                  {t("ed25519, RSA, and ECDSA are supported. PuTTY .ppk files are not.")}</p>
               </div>
 
               <div className="grid gap-1.5">
                 <Label htmlFor="key-passphrase">
-                  Passphrase{" "}
-                  <span className="text-muted-foreground">(if encrypted)</span>
+                  {t("Passphrase")}{" "}
+                  <span className="text-muted-foreground">{t("(if encrypted)")}</span>
                 </Label>
                 <Input
                   id="key-passphrase"
@@ -127,20 +127,16 @@ export function KeyDialog() {
                   autoComplete="off"
                 />
                 <p className="text-[10px] text-muted-foreground">
-                  The key is decrypted once, then stored inside the encrypted
-                  Vault.
-                </p>
+                  {t("The key is decrypted once, then stored inside the encrypted Vault.")}</p>
               </div>
             </>
           ) : (
             <div className="flex items-start gap-2.5 rounded-lg border border-border/70 bg-card/40 px-3 py-3">
               <ShieldCheck className="mt-0.5 size-4 shrink-0 text-primary" />
               <div>
-                <p className="text-[12px] font-medium">ed25519</p>
+                <p className="text-[12px] font-medium">{t("ed25519")}</p>
                 <p className="mt-0.5 text-[11px] leading-relaxed text-muted-foreground">
-                  Modern, fast, and supported by every current OpenSSH server.
-                  The public key will be available to copy after creation.
-                </p>
+                  {t("Modern, fast, and supported by every current OpenSSH server. The public key will be available to copy after creation.")}</p>
               </div>
             </div>
           )}
@@ -152,8 +148,7 @@ export function KeyDialog() {
               onClick={closeKeyDialog}
               disabled={busy}
             >
-              Cancel
-            </Button>
+              {t("Cancel")}</Button>
             <Button type="submit" disabled={busy || !name.trim()}>
               {busy ? (
                 <Loader2 className="animate-spin" data-icon="inline-start" />

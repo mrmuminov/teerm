@@ -27,6 +27,7 @@ import {
   groupDescendantIds,
 } from "@/lib/inventory-helpers";
 import { useInventoryStore } from "@/stores/inventory";
+import { useT } from "@/lib/i18n";
 
 const NO_PARENT = "__root";
 
@@ -43,6 +44,7 @@ export function GroupDialog({
   group,
   defaultParentId = null,
 }: GroupDialogProps) {
+  const t = useT();
   const groups = useInventoryStore((state) => state.groups);
   const createGroup = useInventoryStore((state) => state.createGroup);
   const updateGroup = useInventoryStore((state) => state.updateGroup);
@@ -82,7 +84,7 @@ export function GroupDialog({
     setBusy(false);
 
     if (!result.ok) {
-      toast.error("Could not save Host Group", { description: result.error });
+      toast.error(t("Could not save Host Group"), { description: result.error });
       return;
     }
 
@@ -98,18 +100,17 @@ export function GroupDialog({
             {group ? "Rename Host Group" : "New Host Group"}
           </DialogTitle>
           <DialogDescription>
-            Groups nest freely. A Host belongs to at most one group.
-          </DialogDescription>
+            {t("Groups nest freely. A Host belongs to at most one group.")}</DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="grid gap-4">
           <div className="grid gap-1.5">
-            <Label htmlFor="group-name">Name</Label>
+            <Label htmlFor="group-name">{t("Name")}</Label>
             <Input
               id="group-name"
               value={name}
               onChange={(event) => setName(event.target.value)}
-              placeholder="Production"
+              placeholder={t("Production")}
               required
               autoFocus
               maxLength={64}
@@ -117,13 +118,13 @@ export function GroupDialog({
           </div>
 
           <div className="grid gap-1.5">
-            <Label>Parent group</Label>
+            <Label>{t("Parent group")}</Label>
             <Select value={parentId} onValueChange={setParentId}>
               <SelectTrigger className="w-full">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value={NO_PARENT}>No parent (root)</SelectItem>
+                <SelectItem value={NO_PARENT}>{t("No parent (root)")}</SelectItem>
                 {options.map(({ group: candidate, depth }) => (
                   <SelectItem key={candidate.id} value={candidate.id}>
                     {"  ".repeat(depth)}
@@ -141,8 +142,7 @@ export function GroupDialog({
               onClick={() => onOpenChange(false)}
               disabled={busy}
             >
-              Cancel
-            </Button>
+              {t("Cancel")}</Button>
             <Button type="submit" disabled={busy}>
               {busy && <Loader2 className="animate-spin" data-icon="inline-start" />}
               {group ? "Save" : "Create group"}

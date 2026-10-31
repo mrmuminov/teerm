@@ -37,6 +37,7 @@ import { flattenGroupTree, buildGroupTree } from "@/lib/inventory-helpers";
 import { cn } from "@/lib/utils";
 import { useInventoryStore } from "@/stores/inventory";
 import { useUiStore } from "@/stores/ui";
+import { useT } from "@/lib/i18n";
 
 const NO_GROUP = "__none";
 const EMPTY_FORWARDS: PortForward[] = [];
@@ -88,6 +89,7 @@ function ForwardRow({
   onEdit: () => void;
   onDelete: () => void;
 }) {
+  const t = useT();
   return (
     <div className="group flex items-center gap-2 rounded-lg border border-border/70 bg-card/40 px-2.5 py-2">
       <Badge
@@ -108,14 +110,14 @@ function ForwardRow({
       </span>
       {forward.auto_start && (
         <span
-          title="Starts automatically"
+          title={t("Starts automatically")}
           className="size-1.5 shrink-0 rounded-full bg-primary"
         />
       )}
       <Button
         variant="ghost"
         size="icon-xs"
-        aria-label="Edit forward"
+        aria-label={t("Edit forward")}
         onClick={onEdit}
         className="opacity-0 transition-opacity group-hover:opacity-100"
       >
@@ -124,7 +126,7 @@ function ForwardRow({
       <Button
         variant="ghost"
         size="icon-xs"
-        aria-label="Delete forward"
+        aria-label={t("Delete forward")}
         onClick={onDelete}
         className="text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 hover:text-destructive"
       >
@@ -135,6 +137,7 @@ function ForwardRow({
 }
 
 export function HostSheet() {
+  const t = useT();
   const sheet = useUiStore((state) => state.hostSheet);
   const closeHostSheet = useUiStore((state) => state.closeHostSheet);
   const selectHost = useUiStore((state) => state.selectHost);
@@ -228,7 +231,7 @@ export function HostSheet() {
     setBusy(false);
 
     if (!result.ok) {
-      toast.error("Could not save Host", { description: result.error });
+      toast.error(t("Could not save Host"), { description: result.error });
       return;
     }
 
@@ -246,11 +249,11 @@ export function HostSheet() {
     setBusy(false);
 
     if (!result.ok) {
-      toast.error("Could not delete Host", { description: result.error });
+      toast.error(t("Could not delete Host"), { description: result.error });
       return;
     }
 
-    toast.success("Host deleted");
+    toast.success(t("Host deleted"));
     setConfirmDelete(false);
     selectHost(null);
     closeHostSheet();
@@ -262,12 +265,12 @@ export function HostSheet() {
     }
     const result = await deleteForward(host.id, deletingForward.id);
     if (!result.ok) {
-      toast.error("Could not delete port forward", {
+      toast.error(t("Could not delete port forward"), {
         description: result.error,
       });
       return;
     }
-    toast.success("Port forward removed");
+    toast.success(t("Port forward removed"));
     setDeletingForward(null);
   }
 
@@ -292,32 +295,32 @@ export function HostSheet() {
               <div className="grid gap-3.5">
                 <div className="grid gap-1.5">
                   <Label htmlFor="host-label">
-                    Label <span className="text-muted-foreground">(optional)</span>
+                    {t("Label")}{" "}<span className="text-muted-foreground">{t("(optional)")}</span>
                   </Label>
                   <Input
                     id="host-label"
                     value={form.label}
                     onChange={(event) => patch({ label: event.target.value })}
-                    placeholder="Production API"
+                    placeholder={t("Production API")}
                     autoFocus
                   />
                 </div>
 
                 <div className="grid gap-1.5">
-                  <Label htmlFor="host-address">Address</Label>
+                  <Label htmlFor="host-address">{t("Address")}</Label>
                   <div className="flex gap-2">
                     <Input
                       id="host-address"
                       value={form.address}
                       onChange={(event) => patch({ address: event.target.value })}
-                      placeholder="server.example.com"
+                      placeholder={t("server.example.com")}
                       required
                       autoComplete="off"
                       spellCheck={false}
                       className="flex-1 font-mono text-[12.5px]"
                     />
                     <Input
-                      aria-label="Port"
+                      aria-label={t("Port")}
                       type="number"
                       min={1}
                       max={65535}
@@ -329,12 +332,12 @@ export function HostSheet() {
                 </div>
 
                 <div className="grid gap-1.5">
-                  <Label htmlFor="host-username">Username</Label>
+                  <Label htmlFor="host-username">{t("Username")}</Label>
                   <Input
                     id="host-username"
                     value={form.username}
                     onChange={(event) => patch({ username: event.target.value })}
-                    placeholder="root"
+                    placeholder={t("root")}
                     required
                     autoComplete="off"
                     spellCheck={false}
@@ -343,7 +346,7 @@ export function HostSheet() {
                 </div>
 
                 <div className="grid gap-1.5">
-                  <Label>Host Group</Label>
+                  <Label>{t("Host Group")}</Label>
                   <Select
                     value={form.groupId}
                     onValueChange={(value) => patch({ groupId: value })}
@@ -352,7 +355,7 @@ export function HostSheet() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value={NO_GROUP}>No group</SelectItem>
+                      <SelectItem value={NO_GROUP}>{t("No group")}</SelectItem>
                       {groupOptions.map(({ group, depth }) => (
                         <SelectItem key={group.id} value={group.id}>
                           {"  ".repeat(depth)}
@@ -367,11 +370,11 @@ export function HostSheet() {
               <div className="space-y-3 rounded-xl border border-border/70 bg-card/30 p-3.5">
                 <div className="flex items-center gap-2">
                   <KeyRound className="size-4 text-primary" strokeWidth={1.8} />
-                  <p className="text-[12.5px] font-medium">Authentication</p>
+                  <p className="text-[12.5px] font-medium">{t("Authentication")}</p>
                 </div>
 
                 <div className="grid gap-1.5">
-                  <Label>Key</Label>
+                  <Label>{t("Key")}</Label>
                   <Select
                     value={form.keyId}
                     onValueChange={(value) => patch({ keyId: value })}
@@ -381,8 +384,7 @@ export function HostSheet() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value={NO_GROUP}>
-                        None — password or prompt
-                      </SelectItem>
+                        {t("None — password or prompt")}</SelectItem>
                       {keys.map((key) => (
                         <SelectItem key={key.id} value={key.id}>
                           {key.name}{" "}
@@ -396,7 +398,7 @@ export function HostSheet() {
                 </div>
 
                 <div className="grid gap-1.5">
-                  <Label htmlFor="host-password">Password</Label>
+                  <Label htmlFor="host-password">{t("Password")}</Label>
                   <Input
                     id="host-password"
                     type="password"
@@ -418,22 +420,19 @@ export function HostSheet() {
                           patch({ clearPassword: checked === true })
                         }
                       />
-                      Remove the stored password
-                    </label>
+                      {t("Remove the stored password")}</label>
                   )}
                   <p className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
                     <LockKeyhole className="size-3" />
-                    Write-only across IPC. Never shown again after saving.
-                  </p>
+                    {t("Write-only across IPC. Never shown again after saving.")}</p>
                 </div>
               </div>
 
               <div className="grid gap-2">
-                <Label>Tags</Label>
+                <Label>{t("Tags")}</Label>
                 {tags.length === 0 ? (
                   <p className="text-[11px] text-muted-foreground">
-                    No tags yet. Create them from the Hosts sidebar.
-                  </p>
+                    {t("No tags yet. Create them from the Hosts sidebar.")}</p>
                 ) : (
                   <div className="flex flex-wrap gap-1.5">
                     {tags.map((tag) => {
@@ -470,7 +469,7 @@ export function HostSheet() {
                         className="size-4 text-primary"
                         strokeWidth={1.8}
                       />
-                      <p className="text-[12.5px] font-medium">Port forwards</p>
+                      <p className="text-[12.5px] font-medium">{t("Port forwards")}</p>
                     </div>
                     <Button
                       type="button"
@@ -481,15 +480,12 @@ export function HostSheet() {
                       }
                     >
                       <Plus data-icon="inline-start" />
-                      Add rule
-                    </Button>
+                      {t("Add rule")}</Button>
                   </div>
 
                   {forwards.length === 0 ? (
                     <p className="rounded-lg border border-dashed border-border/70 px-3 py-4 text-center text-[11px] text-muted-foreground">
-                      No tunnels yet. Local and remote rules start with the
-                      Session.
-                    </p>
+                      {t("No tunnels yet. Local and remote rules start with the Session.")}</p>
                   ) : (
                     <div className="space-y-1.5">
                       {forwards.map((forward) => (
@@ -519,8 +515,7 @@ export function HostSheet() {
                     className="text-muted-foreground hover:text-destructive"
                   >
                     <Trash2 data-icon="inline-start" />
-                    Delete
-                  </Button>
+                    {t("Delete")}</Button>
                 )}
               </div>
               <div className="flex items-center gap-2">
@@ -531,8 +526,7 @@ export function HostSheet() {
                   onClick={closeHostSheet}
                   disabled={busy}
                 >
-                  Cancel
-                </Button>
+                  {t("Cancel")}</Button>
                 <Button type="submit" size="sm" disabled={busy}>
                   {busy && (
                     <Loader2
@@ -552,8 +546,8 @@ export function HostSheet() {
         open={confirmDelete}
         onOpenChange={setConfirmDelete}
         title={`Delete ${host?.label ?? "this Host"}?`}
-        description="Its Port Forwards are removed too. The record is hidden from the UI and its stored password is wiped from the Vault."
-        confirmLabel="Delete Host"
+        description={t("Its Port Forwards are removed too. The record is hidden from the UI and its stored password is wiped from the Vault.")}
+        confirmLabel={t("Delete Host")}
         destructive
         busy={busy}
         onConfirm={handleDelete}
@@ -573,13 +567,13 @@ export function HostSheet() {
       <ConfirmDialog
         open={deletingForward !== null}
         onOpenChange={(open) => !open && setDeletingForward(null)}
-        title="Delete port forward?"
+        title={t("Delete port forward?")}
         description={
           deletingForward
             ? `${deletingForward.bind_address}:${deletingForward.bind_port} → ${deletingForward.target_host}:${deletingForward.target_port}`
             : ""
         }
-        confirmLabel="Delete rule"
+        confirmLabel={t("Delete rule")}
         destructive
         onConfirm={handleDeleteForward}
       />

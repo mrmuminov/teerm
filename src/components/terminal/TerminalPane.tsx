@@ -16,6 +16,7 @@ import { attachTerminal } from "@/lib/terminal-bus";
 import { cn } from "@/lib/utils";
 import { useSessionsStore, type SessionTab } from "@/stores/sessions";
 import { useSettingsStore } from "@/stores/settings";
+import { useT } from "@/lib/i18n";
 
 const TERMINAL_THEME: ITheme = {
   background: "#0b0e11",
@@ -91,6 +92,7 @@ export function TerminalPane({
   tab: SessionTab;
   active: boolean;
 }) {
+  const t = useT();
   const hostRef = useRef<HTMLDivElement>(null);
   const terminalRef = useRef<Terminal | null>(null);
   const doFitRef = useRef<((forceResize?: boolean) => void) | null>(null);
@@ -456,12 +458,10 @@ export function TerminalPane({
                 onClick={() => void closeSession(tab.id)}
               >
                 <X data-icon="inline-start" />
-                Close
-              </Button>
+                {t("Close")}</Button>
               <Button size="sm" onClick={() => void reconnect(tab.id)}>
                 <RefreshCw data-icon="inline-start" />
-                Reconnect
-              </Button>
+                {t("Reconnect")}</Button>
             </div>
           </div>
         </div>

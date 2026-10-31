@@ -25,6 +25,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { useSessionsStore, type SessionDialog } from "@/stores/sessions";
+import { useT } from "@/lib/i18n";
 
 type PasswordDialogState = Extract<SessionDialog, { kind: "password" }>;
 type HostKeyDialogState = Extract<SessionDialog, { kind: "host-key" }>;
@@ -113,6 +114,7 @@ function FingerprintBlock({
 }
 
 function PasswordDialogContent({ dialog }: { dialog: PasswordDialogState }) {
+  const t = useT();
   const submitPassword = useSessionsStore((state) => state.submitPassword);
   const cancelDialog = useSessionsStore((state) => state.cancelDialog);
   const [password, setPassword] = useState("");
@@ -131,7 +133,7 @@ function PasswordDialogContent({ dialog }: { dialog: PasswordDialogState }) {
           <LockKeyhole className="size-4" />
         </DialogIcon>
         <div className="min-w-0 flex-1 space-y-1">
-          <DialogTitle>Password required</DialogTitle>
+          <DialogTitle>{t("Password required")}</DialogTitle>
           <DialogDescription className="truncate">
             {dialog.label} ·{" "}
             <span className="font-mono text-[11px]">
@@ -144,7 +146,7 @@ function PasswordDialogContent({ dialog }: { dialog: PasswordDialogState }) {
       <div className="grid gap-3">
         <PasswordField
           id={`session-password-${dialog.tabId}`}
-          label="Password"
+          label={t("Password")}
           value={password}
           onChange={setPassword}
           onEnter={submit}
@@ -169,8 +171,7 @@ function PasswordDialogContent({ dialog }: { dialog: PasswordDialogState }) {
           onClick={() => void cancelDialog()}
           disabled={dialog.busy}
         >
-          Cancel
-        </Button>
+          {t("Cancel")}</Button>
         <Button
           onClick={submit}
           disabled={dialog.busy || password.length === 0}
@@ -188,6 +189,7 @@ function PasswordDialogContent({ dialog }: { dialog: PasswordDialogState }) {
 }
 
 function HostKeyDialogContent({ dialog }: { dialog: HostKeyDialogState }) {
+  const t = useT();
   const acceptHostKey = useSessionsStore((state) => state.acceptHostKey);
   const replaceHostKey = useSessionsStore((state) => state.replaceHostKey);
   const cancelDialog = useSessionsStore((state) => state.cancelDialog);
@@ -234,9 +236,9 @@ function HostKeyDialogContent({ dialog }: { dialog: HostKeyDialogState }) {
         >
           <TriangleAlert className="size-3.5 shrink-0" />
           {changed ? (
-            <span>The server&apos;s host key has changed</span>
+            <span>{t("The server's host key has changed")}</span>
           ) : (
-            <span>This server is not trusted yet</span>
+            <span>{t("This server is not trusted yet")}</span>
           )}
         </p>
         <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
@@ -247,17 +249,17 @@ function HostKeyDialogContent({ dialog }: { dialog: HostKeyDialogState }) {
       </div>
 
       <div className="grid gap-2.5 rounded-lg border border-border/70 bg-background/40 p-3">
-        <DetailLine label="Host" value={dialog.label} />
+        <DetailLine label={t("Host")} value={dialog.label} />
         <DetailLine
-          label="Address"
+          label={t("Address")}
           value={addressLabel(dialog.address, dialog.port)}
           mono
         />
-        <DetailLine label="Key type" value={dialog.keyType} mono />
+        <DetailLine label={t("Key type")} value={dialog.keyType} mono />
 
         {changed && (
           <FingerprintBlock
-            label="Known fingerprint"
+            label={t("Known fingerprint")}
             value={dialog.knownFingerprint ?? "Unknown"}
           />
         )}
@@ -274,8 +276,7 @@ function HostKeyDialogContent({ dialog }: { dialog: HostKeyDialogState }) {
           onClick={() => void cancelDialog()}
           disabled={dialog.busy}
         >
-          Cancel
-        </Button>
+          {t("Cancel")}</Button>
         <Button
           variant={changed ? "destructive" : "default"}
           onClick={() => void primaryAction(dialog.tabId)}
@@ -304,6 +305,7 @@ function KeyboardInteractiveContent({
 }: {
   dialog: KeyboardDialogState;
 }) {
+  const t = useT();
   const submitAuthResponses = useSessionsStore(
     (state) => state.submitAuthResponses,
   );
@@ -385,9 +387,7 @@ function KeyboardInteractiveContent({
 
         {dialog.prompts.length === 0 && (
           <p className="rounded-md border border-border/60 bg-background/40 px-3 py-2 text-[11px] text-muted-foreground">
-            The server did not provide any prompts. Continue to finish
-            authentication.
-          </p>
+            {t("The server did not provide any prompts. Continue to finish authentication.")}</p>
         )}
       </div>
 
@@ -398,8 +398,7 @@ function KeyboardInteractiveContent({
           onClick={() => void cancelDialog()}
           disabled={dialog.busy}
         >
-          Cancel
-        </Button>
+          {t("Cancel")}</Button>
         <Button type="submit" disabled={dialog.busy}>
           {dialog.busy ? (
             <Loader2 className="animate-spin" data-icon="inline-start" />

@@ -7,6 +7,7 @@ import { useSessionsStore } from "@/stores/sessions";
 import { useSettingsStore } from "@/stores/settings";
 import { useSftpStore } from "@/stores/sftp";
 import { useUiStore } from "@/stores/ui";
+import { useT } from "@/lib/i18n";
 
 const LATENCY_INTERVAL_MS = 5000;
 
@@ -40,6 +41,7 @@ function useLatency(sshSessionId: string | null): number | null {
 }
 
 export function StatusBar() {
+  const t = useT();
   const settings = useSettingsStore((state) => state.settings);
   const appInfo = useSettingsStore((state) => state.appInfo);
   const tabs = useSessionsStore((state) => state.tabs);
@@ -68,12 +70,11 @@ export function StatusBar() {
       <div className="flex items-center gap-3">
         <span className="flex items-center gap-1.5">
           <span className="size-1.5 rounded-full bg-primary shadow-[0_0_6px_var(--primary)]" />
-          Vault unlocked
-        </span>
+          {t("Vault unlocked")}</span>
         <span className="text-border">|</span>
         <span className="flex items-center gap-1">
           <LockKeyhole className="size-2.5" />
-          Auto-lock {autoLock > 0 ? `${autoLock} min` : "off"}
+          {t("Auto-lock")}{" "}{autoLock > 0 ? `${autoLock} min` : "off"}
         </span>
       </div>
 
@@ -98,15 +99,15 @@ export function StatusBar() {
           </span>
         )}
         {latency !== null && (
-          <span className="tabular-nums">{latency} ms</span>
+          <span className="tabular-nums">{latency} {t("ms")}</span>
         )}
         {activeTab?.keyType && (
           <span className="font-mono">{activeTab.keyType}</span>
         )}
-        <span>SSH2</span>
+        <span>{t("SSH2")}</span>
         <span className="text-border">|</span>
         <span className="tabular-nums">
-          Teerm {appInfo ? `v${appInfo.version}` : ""}
+          {t("Teerm")}{" "}{appInfo ? `v${appInfo.version}` : ""}
         </span>
       </div>
     </footer>

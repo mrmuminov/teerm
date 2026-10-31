@@ -24,6 +24,7 @@ import {
 } from "@/lib/ipc";
 import { cn } from "@/lib/utils";
 import { useInventoryStore } from "@/stores/inventory";
+import { useT } from "@/lib/i18n";
 
 const ENTITY_LABELS: [keyof EntityCounts, string][] = [
   ["hosts", "Hosts"],
@@ -41,6 +42,7 @@ export function ImportDialog({
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
+  const t = useT();
   const [path, setPath] = useState<string | null>(null);
   const [passphrase, setPassphrase] = useState("");
   const [needsPassphrase, setNeedsPassphrase] = useState(false);
@@ -146,11 +148,9 @@ export function ImportDialog({
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-[460px]">
         <DialogHeader>
-          <DialogTitle>Import Vault</DialogTitle>
+          <DialogTitle>{t("Import Vault")}</DialogTitle>
           <DialogDescription>
-            Load a Teerm export and merge it into this Vault, or replace
-            this Vault with it.
-          </DialogDescription>
+            {t("Load a Teerm export and merge it into this Vault, or replace this Vault with it.")}</DialogDescription>
         </DialogHeader>
 
         <div className="flex items-center gap-2">
@@ -166,14 +166,13 @@ export function ImportDialog({
             disabled={busy}
             onClick={() => void chooseFile()}
           >
-            Choose file
-          </Button>
+            {t("Choose file")}</Button>
         </div>
 
         {path && needsPassphrase && !preview && (
           <PasswordField
             id="import-passphrase"
-            label="Export passphrase"
+            label={t("Export passphrase")}
             value={passphrase}
             onChange={setPassphrase}
             autoComplete="off"
@@ -187,10 +186,10 @@ export function ImportDialog({
           <div className="grid gap-3">
             <div className="overflow-hidden rounded-lg border border-border/70">
               <div className="grid grid-cols-[1fr_auto_auto_auto] gap-x-4 border-b border-border/60 bg-card/50 px-3 py-1.5 text-[10px] text-muted-foreground uppercase">
-                <span>In file</span>
-                <span>New</span>
-                <span>Same</span>
-                <span>Conflict</span>
+                <span>{t("In file")}</span>
+                <span>{t("New")}</span>
+                <span>{t("Same")}</span>
+                <span>{t("Conflict")}</span>
               </div>
               {ENTITY_LABELS.map(([key, label]) => (
                 <div
@@ -226,14 +225,14 @@ export function ImportDialog({
               <ModeOption
                 selected={mode === "merge"}
                 disabled={busy}
-                title="Merge"
-                description="Keep everything here. Conflicting items are added again with “(imported)” in their name."
+                title={t("Merge")}
+                description={t("Keep everything here. Conflicting items are added again with “(imported)” in their name.")}
                 onSelect={() => setMode("merge")}
               />
               <ModeOption
                 selected={mode === "replace"}
                 disabled={busy || !preview.can_replace}
-                title="Replace"
+                title={t("Replace")}
                 description={
                   preview.can_replace
                     ? "Swap this Vault’s contents for the file. The current Vault is backed up first."
@@ -253,8 +252,7 @@ export function ImportDialog({
             disabled={busy}
             onClick={() => handleOpenChange(false)}
           >
-            Cancel
-          </Button>
+            {t("Cancel")}</Button>
           {path && needsPassphrase && !preview ? (
             <Button
               disabled={busy || passphrase.length === 0}
@@ -263,8 +261,7 @@ export function ImportDialog({
               {busy && (
                 <Loader2 className="animate-spin" data-icon="inline-start" />
               )}
-              Unlock file
-            </Button>
+              {t("Unlock file")}</Button>
           ) : (
             <Button
               variant={mode === "replace" ? "destructive" : "default"}

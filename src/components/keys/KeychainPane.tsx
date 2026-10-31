@@ -26,6 +26,7 @@ import { Label } from "@/components/ui/label";
 import type { Key } from "@/lib/ipc";
 import { useInventoryStore } from "@/stores/inventory";
 import { useUiStore } from "@/stores/ui";
+import { useT } from "@/lib/i18n";
 
 function KeyCard({
   item,
@@ -36,6 +37,7 @@ function KeyCard({
   onRename: () => void;
   onDelete: () => void;
 }) {
+  const t = useT();
   return (
     <div className="rounded-xl border border-border/70 bg-card/50 p-4">
       <div className="flex items-start gap-3">
@@ -65,10 +67,10 @@ function KeyCard({
           <Button
             variant="ghost"
             size="icon-sm"
-            aria-label="Copy public key"
+            aria-label={t("Copy public key")}
             onClick={() => {
               void navigator.clipboard.writeText(item.public_key);
-              toast.success("Public key copied");
+              toast.success(t("Public key copied"));
             }}
           >
             <Copy />
@@ -97,6 +99,7 @@ function KeyCard({
 }
 
 export function KeychainPane() {
+  const t = useT();
   const keys = useInventoryStore((state) => state.keys);
   const renameKey = useInventoryStore((state) => state.renameKey);
   const deleteKey = useInventoryStore((state) => state.deleteKey);
@@ -118,11 +121,11 @@ export function KeychainPane() {
     setBusy(false);
 
     if (!result.ok) {
-      toast.error("Could not rename Key", { description: result.error });
+      toast.error(t("Could not rename Key"), { description: result.error });
       return;
     }
 
-    toast.success("Key renamed");
+    toast.success(t("Key renamed"));
     setRenaming(null);
   }
 
@@ -136,11 +139,11 @@ export function KeychainPane() {
     setBusy(false);
 
     if (!result.ok) {
-      toast.error("Could not delete Key", { description: result.error });
+      toast.error(t("Could not delete Key"), { description: result.error });
       return;
     }
 
-    toast.success("Key deleted");
+    toast.success(t("Key deleted"));
     setDeleting(null);
   }
 
@@ -150,23 +153,18 @@ export function KeychainPane() {
         <header className="flex items-start justify-between gap-4">
           <div>
             <p className="text-[10px] font-medium tracking-[0.16em] text-primary uppercase">
-              SSH Keychain
-            </p>
-            <h1 className="mt-1 text-2xl font-semibold tracking-tight">Keys</h1>
+              {t("SSH Keychain")}</p>
+            <h1 className="mt-1 text-2xl font-semibold tracking-tight">{t("Keys")}</h1>
             <p className="mt-1 text-[13px] text-muted-foreground">
-              Private material stays in the Rust core. Only public keys are
-              shown here.
-            </p>
+              {t("Private material stays in the Rust core. Only public keys are shown here.")}</p>
           </div>
           <div className="flex shrink-0 gap-2">
             <Button variant="outline" onClick={() => openKeyDialog("generate")}>
               <Sparkles data-icon="inline-start" />
-              Generate
-            </Button>
+              {t("Generate")}</Button>
             <Button onClick={() => openKeyDialog("import")}>
               <Plus data-icon="inline-start" />
-              Import Key
-            </Button>
+              {t("Import Key")}</Button>
           </div>
         </header>
 
@@ -175,24 +173,20 @@ export function KeychainPane() {
             <div className="mx-auto flex size-12 items-center justify-center rounded-xl bg-primary/10 text-primary ring-1 ring-primary/15">
               <KeyRound className="size-5" strokeWidth={1.6} />
             </div>
-            <h2 className="mt-4 text-[15px] font-semibold">No keys yet</h2>
+            <h2 className="mt-4 text-[15px] font-semibold">{t("No keys yet")}</h2>
             <p className="mx-auto mt-1 max-w-[340px] text-[12px] leading-relaxed text-muted-foreground">
-              Import an existing OpenSSH private key or generate a fresh
-              ed25519 pair. Both are sealed inside the Vault.
-            </p>
+              {t("Import an existing OpenSSH private key or generate a fresh ed25519 pair. Both are sealed inside the Vault.")}</p>
             <div className="mt-4 flex justify-center gap-2">
               <Button size="sm" onClick={() => openKeyDialog("import")}>
                 <Plus data-icon="inline-start" />
-                Import Key
-              </Button>
+                {t("Import Key")}</Button>
               <Button
                 size="sm"
                 variant="outline"
                 onClick={() => openKeyDialog("generate")}
               >
                 <Sparkles data-icon="inline-start" />
-                Generate ed25519
-              </Button>
+                {t("Generate ed25519")}</Button>
             </div>
           </div>
         ) : (
@@ -212,8 +206,7 @@ export function KeychainPane() {
         )}
 
         <p className="mt-6 pb-2 text-center text-[10px] text-muted-foreground">
-          Keys are exported only through a full encrypted Vault export.
-        </p>
+          {t("Keys are exported only through a full encrypted Vault export.")}</p>
       </div>
 
       <Dialog
@@ -222,14 +215,13 @@ export function KeychainPane() {
       >
         <DialogContent className="sm:max-w-[380px]">
           <DialogHeader>
-            <DialogTitle>Rename Key</DialogTitle>
+            <DialogTitle>{t("Rename Key")}</DialogTitle>
             <DialogDescription>
-              The key material and fingerprint stay unchanged.
-            </DialogDescription>
+              {t("The key material and fingerprint stay unchanged.")}</DialogDescription>
           </DialogHeader>
           <form onSubmit={handleRename} className="grid gap-4">
             <div className="grid gap-1.5">
-              <Label htmlFor="rename-key">Name</Label>
+              <Label htmlFor="rename-key">{t("Name")}</Label>
               <Input
                 id="rename-key"
                 value={renameValue}
@@ -246,14 +238,12 @@ export function KeychainPane() {
                 onClick={() => setRenaming(null)}
                 disabled={busy}
               >
-                Cancel
-              </Button>
+                {t("Cancel")}</Button>
               <Button type="submit" disabled={busy || !renameValue.trim()}>
                 {busy && (
                   <Loader2 className="animate-spin" data-icon="inline-start" />
                 )}
-                Save
-              </Button>
+                {t("Save")}</Button>
             </DialogFooter>
           </form>
         </DialogContent>
@@ -263,8 +253,8 @@ export function KeychainPane() {
         open={deleting !== null}
         onOpenChange={(open) => !open && setDeleting(null)}
         title={`Delete Key "${deleting?.name ?? ""}"?`}
-        description="Hosts using this Key must be reassigned first. The private material is wiped from the Vault."
-        confirmLabel="Delete key"
+        description={t("Hosts using this Key must be reassigned first. The private material is wiped from the Vault.")}
+        confirmLabel={t("Delete key")}
         destructive
         busy={busy}
         onConfirm={handleDelete}

@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useInventoryStore } from "@/stores/inventory";
 import { useUiStore } from "@/stores/ui";
+import { useT } from "@/lib/i18n";
 
 const features = [
   {
@@ -30,6 +31,7 @@ const features = [
 ];
 
 function TerminalPreview({ hostCount }: { hostCount: number }) {
+  const t = useT();
   return (
     <div className="dark overflow-hidden rounded-xl border border-border/70 bg-[oklch(0.115_0.008_260)] shadow-2xl shadow-black/50">
       <div className="flex h-9 items-center gap-2 border-b border-foreground/5 bg-foreground/[0.025] px-3">
@@ -39,30 +41,27 @@ function TerminalPreview({ hostCount }: { hostCount: number }) {
           <span className="size-2.5 rounded-full bg-[oklch(0.72_0.15_155)]/80" />
         </div>
         <span className="ml-1 text-[10px] text-muted-foreground">
-          you@teerm — ~
-        </span>
+          {t("you@teerm — ~")}</span>
         <span className="ml-auto rounded bg-foreground/5 px-1.5 py-0.5 font-mono text-[9px] text-muted-foreground">
-          zsh
-        </span>
+          {t("zsh")}</span>
       </div>
 
       <div className="space-y-1.5 px-4 py-4 font-mono text-[11px] leading-relaxed">
         <p>
           <span className="text-primary">❯</span>{" "}
-          <span className="text-foreground/90">teerm init</span>
+          <span className="text-foreground/90">{t("teerm init")}</span>
         </p>
         <p className="pl-4 text-muted-foreground">
-          <span className="text-primary/80">✓</span> vault{" "}
+          <span className="text-primary/80">✓</span> {t("vault")}{" "}
           <span className="ml-4 text-foreground/60">
-            sealed · xchacha20-poly1305
-          </span>
+            {t("sealed · xchacha20-poly1305")}</span>
         </p>
         <p className="pl-4 text-muted-foreground">
-          <span className="text-primary/80">✓</span> keychain{" "}
-          <span className="ml-1 text-foreground/60">ready</span>
+          <span className="text-primary/80">✓</span> {t("keychain")}{" "}
+          <span className="ml-1 text-foreground/60">{t("ready")}</span>
         </p>
         <p className="pl-4 text-muted-foreground">
-          <span className="text-muted-foreground/60">·</span> hosts{" "}
+          <span className="text-muted-foreground/60">·</span> {t("hosts")}{" "}
           <span className="ml-4 text-foreground/60">
             {hostCount === 0
               ? "waiting for your first host"
@@ -71,7 +70,7 @@ function TerminalPreview({ hostCount }: { hostCount: number }) {
         </p>
         <p className="pt-2">
           <span className="text-primary">❯</span>{" "}
-          <span className="text-foreground/90">ssh you@your-server</span>
+          <span className="text-foreground/90">{t("ssh you@your-server")}</span>
         </p>
         <p className="pl-4 text-muted-foreground">
           {hostCount === 0
@@ -85,6 +84,7 @@ function TerminalPreview({ hostCount }: { hostCount: number }) {
 }
 
 export function WelcomePane() {
+  const t = useT();
   const setSection = useUiStore((state) => state.setSection);
   const openHostSheet = useUiStore((state) => state.openHostSheet);
   const hostCount = useInventoryStore((state) => state.hosts.length);
@@ -98,32 +98,26 @@ export function WelcomePane() {
             className="gap-1.5 rounded-full border-primary/25 bg-primary/5 px-2.5 py-1 text-[10px] font-medium tracking-[0.14em] text-primary uppercase"
           >
             <Sparkles className="size-3" />
-            Local-first SSH workspace
-          </Badge>
+            {t("Local-first SSH workspace")}</Badge>
 
           <h1 className="mt-5 text-[30px] leading-[1.15] font-semibold tracking-tight text-balance">
-            Every server, one quiet
-            <span className="text-primary"> terminal.</span>
+            {t("Every server, one quiet")}<span className="text-primary"> {t("terminal.")}</span>
           </h1>
 
           <p className="mt-3 max-w-[460px] text-[13px] leading-relaxed text-muted-foreground">
-            Hosts, keys, and tunnels live in a single encrypted vault on this
-            device. No account, no cloud, no noise.
-          </p>
+            {t("Hosts, keys, and tunnels live in a single encrypted vault on this device. No account, no cloud, no noise.")}</p>
 
           <div className="mt-6 flex items-center gap-2">
             <Button size="lg" onClick={() => openHostSheet()}>
               <Plus data-icon="inline-start" />
-              New Host
-            </Button>
+              {t("New Host")}</Button>
             <Button
               size="lg"
               variant="outline"
               onClick={() => setSection("settings")}
             >
               <Settings2 data-icon="inline-start" />
-              Settings
-            </Button>
+              {t("Settings")}</Button>
           </div>
         </div>
 
@@ -134,7 +128,7 @@ export function WelcomePane() {
         <div className="mt-6 grid grid-cols-3 divide-x divide-border/70 overflow-hidden rounded-lg border border-border/70 bg-card/40">
           {features.map((feature) => (
             <div
-              key={feature.title}
+              key={t(feature.title)}
               className="flex items-center justify-center gap-2.5 px-3 py-3"
             >
               <feature.icon
@@ -143,10 +137,10 @@ export function WelcomePane() {
               />
               <div className="min-w-0">
                 <p className="truncate text-[11px] font-medium">
-                  {feature.title}
+                  {t(feature.title)}
                 </p>
                 <p className="truncate text-[10px] text-muted-foreground">
-                  {feature.detail}
+                  {t(feature.detail)}
                 </p>
               </div>
             </div>

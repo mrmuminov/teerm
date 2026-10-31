@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { SessionStatus, SessionTab } from "@/stores/sessions";
 import { useSftpStore } from "@/stores/sftp";
+import { useT } from "@/lib/i18n";
 
 const STATUS_DOT: Record<SessionStatus, string> = {
   connecting: "bg-amber-400/90 animate-pulse",
@@ -29,6 +30,7 @@ export function SessionHeader({
   tab: SessionTab;
   active: boolean;
 }) {
+  const t = useT();
   const sftpVisible = useSftpStore(
     (state) => state.tabs[tab.id]?.visible ?? false,
   );
@@ -88,9 +90,9 @@ export function SessionHeader({
         type="button"
         variant="ghost"
         size="xs"
-        aria-label="Toggle SFTP"
+        aria-label={t("Toggle SFTP")}
         aria-pressed={sftpVisible}
-        title="Toggle SFTP (Ctrl/Cmd+Shift+S)"
+        title={t("Toggle SFTP (Ctrl/Cmd+Shift+S)")}
         disabled={!connected}
         onClick={() => {
           if (tab.sshSessionId) {
@@ -105,8 +107,7 @@ export function SessionHeader({
         )}
       >
         <FolderTree data-icon="inline-start" />
-        SFTP
-      </Button>
+        {t("SFTP")}</Button>
     </div>
   );
 }

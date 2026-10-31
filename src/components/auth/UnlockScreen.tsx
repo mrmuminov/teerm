@@ -17,8 +17,10 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { useVaultStore } from "@/stores/vault";
+import { useT } from "@/lib/i18n";
 
 export function UnlockScreen() {
+  const t = useT();
   const unlock = useVaultStore((state) => state.unlock);
   const busy = useVaultStore((state) => state.busy);
   const error = useVaultStore((state) => state.error);
@@ -44,20 +46,19 @@ export function UnlockScreen() {
           <div className="mb-1 flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary ring-1 ring-primary/20">
             <LockKeyhole className="size-5" />
           </div>
-          <CardTitle className="text-xl">Unlock your vault</CardTitle>
+          <CardTitle className="text-xl">{t("Unlock your vault")}</CardTitle>
           <CardDescription>
-            Enter your master password to open Teerm.
-          </CardDescription>
+            {t("Enter your master password to open Teerm.")}</CardDescription>
         </CardHeader>
 
         <CardContent className="pt-2">
           <form onSubmit={handleSubmit} className="grid gap-4">
             <PasswordField
               id="master-password"
-              label="Master password"
+              label={t("Master password")}
               value={password}
               onChange={setPassword}
-              placeholder="Your master password"
+              placeholder={t("Your master password")}
               autoComplete="current-password"
               autoFocus
               disabled={busy}
@@ -66,7 +67,7 @@ export function UnlockScreen() {
             {error && (
               <Alert variant="destructive">
                 <TriangleAlert />
-                <AlertTitle>Could not unlock</AlertTitle>
+                <AlertTitle>{t("Could not unlock")}</AlertTitle>
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
             )}
@@ -78,16 +79,14 @@ export function UnlockScreen() {
               disabled={password.length === 0 || busy}
             >
               {busy ? <Loader2 className="animate-spin" /> : <LockKeyhole />}
-              Unlock
-            </Button>
+              {t("Unlock")}</Button>
           </form>
         </CardContent>
       </Card>
 
       <p className="mt-5 flex items-center justify-center gap-1.5 text-center text-[11px] text-muted-foreground">
         <ShieldCheck className="size-3.5" />
-        No account. Your vault stays on this device.
-      </p>
+        {t("No account. Your vault stays on this device.")}</p>
     </AuthLayout>
   );
 }

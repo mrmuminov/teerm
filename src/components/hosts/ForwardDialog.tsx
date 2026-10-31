@@ -23,6 +23,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 import type { ForwardKind, PortForward } from "@/lib/ipc";
 import { useInventoryStore } from "@/stores/inventory";
+import { useT } from "@/lib/i18n";
 
 type ForwardDialogProps = {
   open: boolean;
@@ -55,6 +56,7 @@ export function ForwardDialog({
   hostId,
   forward,
 }: ForwardDialogProps) {
+  const t = useT();
   const createForward = useInventoryStore((state) => state.createForward);
   const updateForward = useInventoryStore((state) => state.updateForward);
   const [form, setForm] = useState<FormState>(emptyForm);
@@ -104,7 +106,7 @@ export function ForwardDialog({
     setBusy(false);
 
     if (!result.ok) {
-      toast.error("Could not save port forward", {
+      toast.error(t("Could not save port forward"), {
         description: result.error,
       });
       return;
@@ -132,7 +134,7 @@ export function ForwardDialog({
 
         <form onSubmit={handleSubmit} className="grid gap-4">
           <div className="grid gap-1.5">
-            <Label>Direction</Label>
+            <Label>{t("Direction")}</Label>
             <Select
               value={form.kind}
               onValueChange={(value) => patch({ kind: value as ForwardKind })}
@@ -141,8 +143,8 @@ export function ForwardDialog({
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="local">Local (-L)</SelectItem>
-                <SelectItem value="remote">Remote (-R)</SelectItem>
+                <SelectItem value="local">{t("Local (-L)")}</SelectItem>
+                <SelectItem value="remote">{t("Remote (-R)")}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -174,7 +176,7 @@ export function ForwardDialog({
               <Input
                 value={form.targetHost}
                 onChange={(event) => patch({ targetHost: event.target.value })}
-                placeholder="localhost"
+                placeholder={t("localhost")}
                 className="flex-1 font-mono text-[12px]"
               />
               <Input
@@ -191,10 +193,9 @@ export function ForwardDialog({
 
           <div className="flex items-center justify-between rounded-lg border border-border/70 px-3 py-2.5">
             <div>
-              <p className="text-[12.5px] font-medium">Start with the Session</p>
+              <p className="text-[12.5px] font-medium">{t("Start with the Session")}</p>
               <p className="text-[11px] text-muted-foreground">
-                Open this tunnel whenever this Host connects.
-              </p>
+                {t("Open this tunnel whenever this Host connects.")}</p>
             </div>
             <Switch
               checked={form.autoStart}
@@ -209,8 +210,7 @@ export function ForwardDialog({
               onClick={() => onOpenChange(false)}
               disabled={busy}
             >
-              Cancel
-            </Button>
+              {t("Cancel")}</Button>
             <Button type="submit" disabled={busy}>
               {busy && <Loader2 className="animate-spin" data-icon="inline-start" />}
               {forward ? "Save changes" : "Add rule"}

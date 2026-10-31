@@ -35,6 +35,7 @@ import { cn } from "@/lib/utils";
 import { useInventoryStore } from "@/stores/inventory";
 import { useSessionsStore } from "@/stores/sessions";
 import { useUiStore } from "@/stores/ui";
+import { useT } from "@/lib/i18n";
 
 const sectionMeta: Record<
   Exclude<Section, "settings">,
@@ -288,6 +289,7 @@ function useHostFilter() {
 }
 
 export function Sidebar() {
+  const t = useT();
   const section = useUiStore((state) => state.section);
   const selectedHostId = useUiStore((state) => state.selectedHostId);
   const selectHost = useUiStore((state) => state.selectHost);
@@ -355,12 +357,12 @@ export function Sidebar() {
     }
     const result = await deleteGroup(deletingGroup.id);
     if (!result.ok) {
-      toast.error("Could not delete Host Group", {
+      toast.error(t("Could not delete Host Group"), {
         description: result.error,
       });
       return;
     }
-    toast.success("Host Group deleted");
+    toast.success(t("Host Group deleted"));
     setDeletingGroup(null);
     if (filter.filterGroupId === deletingGroup.id) {
       filter.setFilterGroupId(null);
@@ -373,10 +375,10 @@ export function Sidebar() {
     }
     const result = await deleteKey(deletingKey);
     if (!result.ok) {
-      toast.error("Could not delete Key", { description: result.error });
+      toast.error(t("Could not delete Key"), { description: result.error });
       return;
     }
-    toast.success("Key deleted");
+    toast.success(t("Key deleted"));
     setDeletingKey(null);
   }
 
@@ -386,10 +388,10 @@ export function Sidebar() {
     }
     const result = await deleteKnownHost(deletingKnown);
     if (!result.ok) {
-      toast.error("Could not forget host", { description: result.error });
+      toast.error(t("Could not forget host"), { description: result.error });
       return;
     }
-    toast.success("Host fingerprint forgotten");
+    toast.success(t("Host fingerprint forgotten"));
     setDeletingKnown(null);
   }
 
@@ -399,7 +401,7 @@ export function Sidebar() {
       <div className="flex h-12 items-center justify-between px-3">
         <div className="flex items-center gap-2">
           <h2 className="text-[13px] font-semibold tracking-tight">
-            {meta.title}
+            {t(meta.title)}
           </h2>
           <Badge
             variant="secondary"
@@ -416,7 +418,7 @@ export function Sidebar() {
           <Button
             variant="ghost"
             size="icon-sm"
-            aria-label="New Host"
+            aria-label={t("New Host")}
             className="text-muted-foreground hover:text-foreground"
             onClick={() => openHostSheet()}
           >
@@ -426,7 +428,7 @@ export function Sidebar() {
           <Button
             variant="ghost"
             size="icon-sm"
-            aria-label="Import Key"
+            aria-label={t("Import Key")}
             className="text-muted-foreground hover:text-foreground"
             onClick={() => openKeyDialog("import")}
           >
@@ -454,8 +456,8 @@ export function Sidebar() {
                   : setKnownQuery(event.target.value)
             }
             id="sidebar-search"
-            placeholder={meta.search}
-            aria-label={meta.search}
+            placeholder={t(meta.search)}
+            aria-label={t(meta.search)}
             className="h-8 w-full rounded-md border border-sidebar-border bg-background/50 pr-2 pl-7 text-[12px] outline-none transition-colors placeholder:text-muted-foreground/70 focus-visible:border-ring focus-visible:ring-2 focus-visible:ring-ring/30"
           />
         </div>
@@ -488,18 +490,18 @@ export function Sidebar() {
                   )}
                   strokeWidth={1.8}
                 />
-                <span className="min-w-0 flex-1 truncate">All Hosts</span>
+                <span className="min-w-0 flex-1 truncate">{t("All Hosts")}</span>
                 <span className="text-[10px] tabular-nums text-muted-foreground">
                   {hosts.length}
                 </span>
               </button>
 
               <SidebarHeading
-                label="Groups"
+                label={t("Groups")}
                 action={
                   <button
                     type="button"
-                    aria-label="New group"
+                    aria-label={t("New group")}
                     onClick={() =>
                       setGroupDialog({ open: true, group: null, parentId: null })
                     }
@@ -511,8 +513,7 @@ export function Sidebar() {
               />
               {tree.length === 0 ? (
                 <p className="px-2 py-1.5 text-[11px] text-muted-foreground">
-                  No groups. Create one to organize Hosts.
-                </p>
+                  {t("No groups. Create one to organize Hosts.")}</p>
               ) : (
                 tree.map((node) => (
                   <GroupTreeRow
@@ -540,11 +541,11 @@ export function Sidebar() {
               )}
 
               <SidebarHeading
-                label="Tags"
+                label={t("Tags")}
                 action={
                   <button
                     type="button"
-                    aria-label="Manage tags"
+                    aria-label={t("Manage tags")}
                     onClick={() => setTagManagerOpen(true)}
                     className="rounded p-0.5 text-muted-foreground transition-colors hover:text-foreground"
                   >
@@ -554,8 +555,7 @@ export function Sidebar() {
               />
               {tags.length === 0 ? (
                 <p className="px-2 py-1.5 text-[11px] text-muted-foreground">
-                  No tags yet.
-                </p>
+                  {t("No tags yet.")}</p>
               ) : (
                 tags.map((tag) => (
                   <button
@@ -589,8 +589,8 @@ export function Sidebar() {
               <SidebarHeading
                 label={
                   filter.filterGroupId || filter.filterTagId
-                    ? "Filtered Hosts"
-                    : "Saved Hosts"
+                    ? t("Filtered Hosts")
+                    : t("Saved Hosts")
                 }
               />
               {filter.filtered.length === 0 ? (
@@ -622,10 +622,9 @@ export function Sidebar() {
                     className="mx-auto size-5 text-muted-foreground/70"
                     strokeWidth={1.6}
                   />
-                  <p className="mt-2 text-[12px] font-medium">No keys yet</p>
+                  <p className="mt-2 text-[12px] font-medium">{t("No keys yet")}</p>
                   <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
-                    Import an OpenSSH key or generate ed25519.
-                  </p>
+                    {t("Import an OpenSSH key or generate ed25519.")}</p>
                 </div>
               ) : (
                 visibleKeys.map((key) => (
@@ -648,7 +647,7 @@ export function Sidebar() {
                       aria-label={`Copy ${key.name} public key`}
                       onClick={() => {
                         void navigator.clipboard.writeText(key.public_key);
-                        toast.success("Public key copied");
+                        toast.success(t("Public key copied"));
                       }}
                       className="opacity-0 transition-opacity group-hover:opacity-100"
                     >
@@ -678,11 +677,10 @@ export function Sidebar() {
                     strokeWidth={1.6}
                   />
                   <p className="mt-2 text-[12px] font-medium">
-                    {meta.empty}
+                    {t(meta.empty)}
                   </p>
                   <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
-                    Fingerprints are saved after the first connect.
-                  </p>
+                    {t("Fingerprints are saved after the first connect.")}</p>
                 </div>
               ) : (
                 visibleKnown.map((known) => (
@@ -728,8 +726,7 @@ export function Sidebar() {
             onClick={() => openHostSheet()}
           >
             <Plus data-icon="inline-start" />
-            New Host
-          </Button>
+            {t("New Host")}</Button>
         )}
 
         {section === "keys" && (
@@ -741,8 +738,7 @@ export function Sidebar() {
               onClick={() => openKeyDialog("import")}
             >
               <Plus data-icon="inline-start" />
-              Import
-            </Button>
+              {t("Import")}</Button>
             <Button
               className="w-full"
               variant="outline"
@@ -750,16 +746,14 @@ export function Sidebar() {
               onClick={() => openKeyDialog("generate")}
             >
               <KeyRound data-icon="inline-start" />
-              Generate
-            </Button>
+              {t("Generate")}</Button>
           </div>
         )}
 
         {section === "known-hosts" && (
           <p className="flex items-start gap-1.5 px-0.5 text-[10px] leading-relaxed text-muted-foreground">
             <LockKeyhole className="mt-px size-3 shrink-0" />
-            Fingerprints stay inside your encrypted Vault.
-          </p>
+            {t("Fingerprints stay inside your encrypted Vault.")}</p>
         )}
       </div>
       </aside>
@@ -782,8 +776,8 @@ export function Sidebar() {
         open={deletingGroup !== null}
         onOpenChange={(open) => !open && setDeletingGroup(null)}
         title={`Delete Host Group "${deletingGroup?.name ?? ""}"?`}
-        description="Child groups and Hosts move to its parent. No Hosts are deleted."
-        confirmLabel="Delete group"
+        description={t("Child groups and Hosts move to its parent. No Hosts are deleted.")}
+        confirmLabel={t("Delete group")}
         destructive
         onConfirm={handleDeleteGroup}
       />
@@ -791,9 +785,9 @@ export function Sidebar() {
       <ConfirmDialog
         open={deletingKey !== null}
         onOpenChange={(open) => !open && setDeletingKey(null)}
-        title="Delete this Key?"
-        description="Hosts using it must be reassigned first. The private material is wiped from the Vault."
-        confirmLabel="Delete key"
+        title={t("Delete this Key?")}
+        description={t("Hosts using it must be reassigned first. The private material is wiped from the Vault.")}
+        confirmLabel={t("Delete key")}
         destructive
         onConfirm={handleDeleteKey}
       />
@@ -801,9 +795,9 @@ export function Sidebar() {
       <ConfirmDialog
         open={deletingKnown !== null}
         onOpenChange={(open) => !open && setDeletingKnown(null)}
-        title="Forget this fingerprint?"
-        description="The next connection will ask you to trust the server again."
-        confirmLabel="Forget"
+        title={t("Forget this fingerprint?")}
+        description={t("The next connection will ask you to trust the server again.")}
+        confirmLabel={t("Forget")}
         destructive
         onConfirm={handleDeleteKnown}
       />

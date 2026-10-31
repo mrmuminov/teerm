@@ -1,6 +1,8 @@
 import { Logo } from "@/components/Logo";
+import { useT } from "@/lib/i18n";
 
 export function BootScreen() {
+  const t = useT();
   return (
     <div className="auth-backdrop flex h-full items-center justify-center bg-background">
       <div className="flex flex-col items-center gap-5">
@@ -9,8 +11,7 @@ export function BootScreen() {
         </div>
         <div className="flex items-center gap-2 text-[11px] text-muted-foreground">
           <span className="size-1.5 animate-pulse rounded-full bg-primary" />
-          Opening your vault…
-        </div>
+          {t("Opening your vault…")}</div>
       </div>
     </div>
   );

@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dialog";
 import { MIN_PASSWORD_LENGTH } from "@/lib/password";
 import { errorMessage, ipc } from "@/lib/ipc";
+import { useT } from "@/lib/i18n";
 
 export function ChangePasswordDialog({
   open,
@@ -22,6 +23,7 @@ export function ChangePasswordDialog({
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
+  const t = useT();
   const [current, setCurrent] = useState("");
   const [next, setNext] = useState("");
   const [confirmation, setConfirmation] = useState("");
@@ -57,7 +59,7 @@ export function ChangePasswordDialog({
     setError(null);
     try {
       await ipc.vaultChangePassword(current, next);
-      toast.success("Master Password changed");
+      toast.success(t("Master Password changed"));
       setBusy(false);
       handleOpenChange(false);
     } catch (caught) {
@@ -70,17 +72,15 @@ export function ChangePasswordDialog({
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-[420px]">
         <DialogHeader>
-          <DialogTitle>Change Master Password</DialogTitle>
+          <DialogTitle>{t("Change Master Password")}</DialogTitle>
           <DialogDescription>
-            The Vault is re-encrypted with the new password. There is no
-            recovery if you forget it.
-          </DialogDescription>
+            {t("The Vault is re-encrypted with the new password. There is no recovery if you forget it.")}</DialogDescription>
         </DialogHeader>
 
         <div className="grid gap-3">
           <PasswordField
             id="current-password"
-            label="Current password"
+            label={t("Current password")}
             value={current}
             onChange={setCurrent}
             autoFocus
@@ -88,7 +88,7 @@ export function ChangePasswordDialog({
           />
           <PasswordField
             id="new-password"
-            label="New password"
+            label={t("New password")}
             value={next}
             onChange={setNext}
             autoComplete="new-password"
@@ -96,12 +96,11 @@ export function ChangePasswordDialog({
           />
           {tooShort && (
             <p className="text-[11px] text-destructive">
-              Use at least {MIN_PASSWORD_LENGTH} characters.
-            </p>
+              {t("Use at least {count} characters.", { count: MIN_PASSWORD_LENGTH })}</p>
           )}
           <PasswordField
             id="confirm-password"
-            label="Confirm new password"
+            label={t("Confirm new password")}
             value={confirmation}
             onChange={setConfirmation}
             autoComplete="new-password"
@@ -110,8 +109,7 @@ export function ChangePasswordDialog({
           />
           {mismatch && (
             <p className="text-[11px] text-destructive">
-              The passwords do not match.
-            </p>
+              {t("The passwords do not match.")}</p>
           )}
           {error && <p className="text-[11px] text-destructive">{error}</p>}
         </div>
@@ -122,12 +120,10 @@ export function ChangePasswordDialog({
             disabled={busy}
             onClick={() => handleOpenChange(false)}
           >
-            Cancel
-          </Button>
+            {t("Cancel")}</Button>
           <Button disabled={!canSubmit} onClick={() => void submit()}>
             {busy && <Loader2 className="animate-spin" data-icon="inline-start" />}
-            Change password
-          </Button>
+            {t("Change password")}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
