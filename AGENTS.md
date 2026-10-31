@@ -28,6 +28,7 @@ Read `CONTEXT.md` before naming things: it defines the domain vocabulary (Host, 
 - `inventory/` — `service.rs` implements Host/Group/Tag/Key/Port Forward/Known Host CRUD against the unlocked vault; `dto.rs` is the shape exposed to the frontend.
 - `ssh/` and `sftp/` — live Session management (PTY, auth prompts, host-key verification) and SFTP operations/transfers. They push data to the UI via Tauri events.
 - `forward/` — runtime for Port Forwards on a live Session (`ForwardManager`): local forwards bind a listener and open `direct-tcpip` channels; remote forwards register a target in the Session's `RemoteTargets` (shared with the SSH client handler) and ask the server to listen. Auto-start rules are launched from `session_open`; status goes out as `ssh:forward-status`.
+- `monitor/` — server resource monitor: `SCRIPT` is piped to `sh -s` over the Session (`SshManager::run_script`), `parse`/`compute` turn the output into a `MonitorSample`; the previous sample per Session lives in `MonitorManager`.
 - `settings.rs` — non-secret `settings.json` beside the vault.
 - `error.rs` — `AppError` serialized to the frontend as `{ code, message, ... }` (host-key errors also carry `address`, `port`, `key_type`, `fingerprint`, `known_fingerprint`).
 

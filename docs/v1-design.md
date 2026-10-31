@@ -189,6 +189,7 @@ Password edit semantics: omitted field = keep existing; explicit `clear_password
 
 | Command | Arguments | Returns |
 |---|---|---|
+| `monitor_sample` | `{ session_id }` → `MonitorSample` (CPU %, load, memory/swap, disks, network rates, GPUs, uptime); polled every 3 s by the Host page while the Host has `monitoring` on and a connected Session |
 | `session_latency` | `{ session_id }` → round-trip time in ms (SSH ping, 5 s timeout); the status bar polls it every 5 s for the active Session |
 | `session_open` | `{ host_id, cols, rows, channel }` | `{ session_id }` |
 | `session_write` | `{ session_id, data }` | — |
@@ -343,3 +344,8 @@ Split panes, Snippets, Mosh/Telnet/Serial, mobile, accounts/sync, AI, Jump Host 
 - `cd src-tauri && cargo test` — vault crypto and store tests.
 
 The dev mock installs only when `__TAURI_INTERNALS__` is absent and is compiled out of production builds.
+
+## 9. Server monitoring
+
+A Host has a `monitoring` switch (Host editor). When it is on, the Host page shows CPU, memory, disk, network and (when `nvidia-smi` exists) GPU use. Nothing runs without a connected Session: the page offers Connect instead. The probe is a fixed read-only script piped to `sh -s` on a fresh channel of the Session (`/proc`, `df`, `nvidia-smi`), so it needs no agent on the server and no extra connection. Linux servers only; other systems report "not available". CPU percentage and network rates are differences between two samples, kept per Session in the Rust core, so the first sample has no rate.
+

@@ -17,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import {
   Select,
   SelectContent,
@@ -52,6 +53,7 @@ type FormState = {
   tagIds: string[];
   password: string;
   clearPassword: boolean;
+  monitoring: boolean;
 };
 
 const emptyForm: FormState = {
@@ -64,6 +66,7 @@ const emptyForm: FormState = {
   tagIds: [],
   password: "",
   clearPassword: false,
+  monitoring: false,
 };
 
 function formFromHost(host: Host): FormState {
@@ -77,6 +80,7 @@ function formFromHost(host: Host): FormState {
     tagIds: host.tag_ids,
     password: "",
     clearPassword: false,
+    monitoring: host.monitoring,
   };
 }
 
@@ -222,6 +226,7 @@ export function HostSheet() {
       key_id: form.keyId === NO_GROUP ? null : form.keyId,
       password: form.password.length > 0 ? form.password : null,
       clear_password: form.clearPassword,
+      monitoring: form.monitoring,
     };
 
     const result = host
@@ -459,6 +464,22 @@ export function HostSheet() {
                     })}
                   </div>
                 )}
+              </div>
+
+              <div className="flex items-center justify-between gap-4 rounded-lg border border-border/70 bg-card/40 px-3 py-2.5">
+                <div>
+                  <Label htmlFor="host-monitoring" className="text-[12.5px]">
+                    {t("Monitoring")}
+                  </Label>
+                  <p className="mt-0.5 text-[10.5px] text-muted-foreground">
+                    {t("Show CPU, memory, disk, GPU and network use on the Host page while connected. Linux servers only.")}
+                  </p>
+                </div>
+                <Switch
+                  id="host-monitoring"
+                  checked={form.monitoring}
+                  onCheckedChange={(checked) => patch({ monitoring: checked })}
+                />
               </div>
 
               {host && (

@@ -31,6 +31,7 @@ function host(label: string, groupId: string | null = null, port = 22): Host {
     tag_ids: [],
     key_id: null,
     has_password: false,
+    monitoring: false,
     created_at: "2026-01-01T00:00:00Z",
     updated_at: "2026-01-01T00:00:00Z",
   };

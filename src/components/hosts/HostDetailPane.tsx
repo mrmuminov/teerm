@@ -13,6 +13,7 @@ import {
 import { toast } from "sonner";
 
 import { ConfirmDialog } from "@/components/common/ConfirmDialog";
+import { HostMonitor } from "@/components/monitor/HostMonitor";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { Host, PortForward } from "@/lib/ipc";
@@ -205,6 +206,13 @@ export function HostDetailPane({ host }: { host: Host }) {
             </div>
           </section>
         </div>
+
+        {host.monitoring && (
+          <HostMonitor
+            sshSessionId={sshSessionId}
+            onConnect={() => void connect(host)}
+          />
+        )}
 
         <section className="mt-4 overflow-hidden rounded-xl border border-border/70 bg-card/50">
           <header className="flex items-center justify-between border-b border-border/60 px-4 py-2.5">

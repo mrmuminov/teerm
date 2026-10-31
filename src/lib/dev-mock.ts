@@ -21,6 +21,57 @@ type DevEventBus = {
   emit: (event: string, payload: unknown) => void;
 };
 
+let mockCpu = 22;
+let mockRx = 380_000;
+let mockTx = 90_000;
+let mockNetTotals = { rx: 4_200_000_000, tx: 1_100_000_000 };
+
+/** A drifting reading so the Host page monitor has something to show. */
+function mockMonitorSample() {
+  const drift = (value: number, step: number, min: number, max: number) =>
+    Math.min(max, Math.max(min, value + (Math.random() - 0.5) * step));
+  mockCpu = drift(mockCpu, 24, 3, 96);
+  mockRx = drift(mockRx, 400_000, 2_000, 6_000_000);
+  mockTx = drift(mockTx, 150_000, 1_000, 2_000_000);
+  mockNetTotals = {
+    rx: mockNetTotals.rx + Math.round(mockRx * 3),
+    tx: mockNetTotals.tx + Math.round(mockTx * 3),
+  };
+
+  return {
+    supported: true,
+    cpu_percent: mockCpu,
+    cores: 8,
+    load: [mockCpu / 40, mockCpu / 50, mockCpu / 60],
+    memory: {
+      total_kib: 16_000_000,
+      used_kib: 9_400_000 + Math.round(mockCpu * 12_000),
+      swap_total_kib: 2_000_000,
+      swap_used_kib: 310_000,
+    },
+    disks: [
+      { mount: "/", filesystem: "/dev/nvme0n1p2", size_kib: 250_000_000, used_kib: 98_000_000 },
+      { mount: "/var/lib/data", filesystem: "/dev/sda1", size_kib: 1_000_000_000, used_kib: 812_000_000 },
+    ],
+    network: {
+      rx_total_bytes: mockNetTotals.rx,
+      tx_total_bytes: mockNetTotals.tx,
+      rx_bytes_per_sec: mockRx,
+      tx_bytes_per_sec: mockTx,
+    },
+    gpus: [
+      {
+        name: "NVIDIA GeForce RTX 4090",
+        utilization_percent: Math.min(99, mockCpu * 0.8 + 6),
+        memory_used_mib: 6_200,
+        memory_total_mib: 24_564,
+        temperature_c: 54,
+      },
+    ],
+    uptime_secs: 3 * 86_400 + 4 * 3_600,
+  };
+}
+
 const MOCK_WORDS = [
   "abandon", "ability", "able", "about", "above", "absent", "absorb", "abstract",
   "absurd", "abuse", "access", "accident", "account", "accuse", "achieve", "acid",
@@ -185,6 +236,7 @@ type HostInputShape = {
   key_id: string | null;
   password?: string | null;
   clear_password?: boolean;
+  monitoring?: boolean;
 };
 
 /**
@@ -292,6 +344,7 @@ export function installDevMock() {
       tag_ids: [tags[0].id],
       key_id: seedKey.id,
       has_password: false,
+      monitoring: true,
       created_at: now,
       updated_at: now,
     },
@@ -305,6 +358,7 @@ export function installDevMock() {
       tag_ids: [tags[0].id, tags[1].id],
       key_id: null,
       has_password: true,
+      monitoring: false,
       created_at: now,
       updated_at: now,
     },
@@ -318,6 +372,7 @@ export function installDevMock() {
       tag_ids: [],
       key_id: seedKey.id,
       has_password: false,
+      monitoring: false,
       created_at: now,
       updated_at: now,
     },
@@ -331,6 +386,7 @@ export function installDevMock() {
       tag_ids: [tags[2].id],
       key_id: seedKeyTwo.id,
       has_password: false,
+      monitoring: false,
       created_at: now,
       updated_at: now,
     },
@@ -992,6 +1048,7 @@ export function installDevMock() {
       tag_ids: input.tag_ids,
       key_id: input.key_id,
       has_password: Boolean(input.password),
+      monitoring: Boolean(input.monitoring),
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
@@ -1015,6 +1072,8 @@ export function installDevMock() {
           unlocked = false;
           clearMockSftpState();
           return null;
+        case "monitor_sample":
+          return mockMonitorSample();
         case "session_latency":
           return 18 + Math.round(Math.random() * 14);
         case "vault_create_from_export":
@@ -1097,6 +1156,7 @@ export function installDevMock() {
             has_password: input.clear_password
               ? false
               : current.has_password || Boolean(input.password),
+            monitoring: Boolean(input.monitoring),
             updated_at: new Date().toISOString(),
           };
           hosts = hosts.map((host) => (host.id === id ? updated : host));

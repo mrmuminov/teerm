@@ -55,6 +55,7 @@ export type Host = {
   tag_ids: string[];
   key_id: string | null;
   has_password: boolean;
+  monitoring: boolean;
   created_at: string;
   updated_at: string;
 };
@@ -69,6 +70,7 @@ export type HostInput = {
   key_id: string | null;
   password?: string | null;
   clear_password?: boolean;
+  monitoring?: boolean;
 };
 
 export type HostGroup = {
@@ -164,6 +166,47 @@ export type ImportResult = {
   mode: ImportMode;
   merge: MergeOutcome | null;
   backup_path: string | null;
+};
+
+export type MemoryUsage = {
+  total_kib: number;
+  used_kib: number;
+  swap_total_kib: number;
+  swap_used_kib: number;
+};
+
+export type DiskUsage = {
+  mount: string;
+  filesystem: string;
+  size_kib: number;
+  used_kib: number;
+};
+
+export type GpuUsage = {
+  name: string;
+  utilization_percent: number;
+  memory_used_mib: number;
+  memory_total_mib: number;
+  temperature_c: number | null;
+};
+
+export type NetworkRate = {
+  rx_total_bytes: number;
+  tx_total_bytes: number;
+  rx_bytes_per_sec: number | null;
+  tx_bytes_per_sec: number | null;
+};
+
+export type MonitorSample = {
+  supported: boolean;
+  cpu_percent: number | null;
+  cores: number | null;
+  load: [number, number, number] | null;
+  memory: MemoryUsage | null;
+  disks: DiskUsage[];
+  network: NetworkRate | null;
+  gpus: GpuUsage[];
+  uptime_secs: number | null;
 };
 
 export type ForwardState = "running" | "stopped" | "failed";
@@ -361,6 +404,8 @@ export const ipc = {
     invoke<void>("session_close", { sessionId }),
   sessionLatency: (sessionId: string) =>
     invoke<number>("session_latency", { sessionId }),
+  monitorSample: (sessionId: string) =>
+    invoke<MonitorSample>("monitor_sample", { sessionId }),
   sessionAuthRespond: (sessionId: string, responses: string[] | null) =>
     invoke<void>("session_auth_respond", { sessionId, responses }),
 
