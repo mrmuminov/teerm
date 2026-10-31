@@ -18,8 +18,18 @@ type VaultStore = {
   create: (password: string) => Promise<void>;
   unlock: (password: string) => Promise<void>;
   lock: () => Promise<void>;
+  /** Re-reads the status, e.g. after the Recovery Phrase was set up. */
+  refreshStatus: () => Promise<void>;
   clearError: () => void;
 };
+
+async function readStatus(fallback: VaultStatus): Promise<VaultStatus> {
+  try {
+    return await ipc.vaultStatus();
+  } catch {
+    return fallback;
+  }
+}
 
 export const useVaultStore = create<VaultStore>()((set) => ({
   phase: "loading",
@@ -53,7 +63,11 @@ export const useVaultStore = create<VaultStore>()((set) => ({
       set({
         busy: false,
         phase: "unlocked",
-        status: { exists: true, unlocked: true },
+        status: await readStatus({
+          exists: true,
+          unlocked: true,
+          recovery_enabled: false,
+        }),
       });
     } catch (error) {
       set({ busy: false, error: errorMessage(error) });
@@ -68,7 +82,11 @@ export const useVaultStore = create<VaultStore>()((set) => ({
       set({
         busy: false,
         phase: "unlocked",
-        status: { exists: true, unlocked: true },
+        status: await readStatus({
+          exists: true,
+          unlocked: true,
+          recovery_enabled: false,
+        }),
       });
     } catch (error) {
       set({ busy: false, error: errorMessage(error) });
@@ -80,11 +98,22 @@ export const useVaultStore = create<VaultStore>()((set) => ({
       await ipc.vaultLock();
       set({
         phase: "locked",
-        status: { exists: true, unlocked: false },
+        status: await readStatus({
+          exists: true,
+          unlocked: false,
+          recovery_enabled: false,
+        }),
         error: null,
       });
     } catch (error) {
       set({ error: errorMessage(error) });
+    }
+  },
+
+  refreshStatus: async () => {
+    const current = useVaultStore.getState().status;
+    if (current) {
+      set({ status: await readStatus(current) });
     }
   },
 

@@ -1,11 +1,12 @@
 use serde::Serialize;
-use zeroize::Zeroizing;
 
 use crate::error::AppError;
 
-use super::crypto::{self, KdfParams};
+use super::crypto::{self, KeyMaterial, VaultEnvelope};
 use super::model::{VaultPayload, SCHEMA_VERSION};
+use super::phrase;
 use super::store::VaultStore;
+use zeroize::Zeroizing;
 
 pub const MIN_MASTER_PASSWORD_LEN: usize = 10;
 const MAX_MASTER_PASSWORD_LEN: usize = 1024;
@@ -14,19 +15,20 @@ const MAX_MASTER_PASSWORD_LEN: usize = 1024;
 pub struct VaultStatus {
     pub exists: bool,
     pub unlocked: bool,
+    /// Whether a Recovery Phrase can open this Vault. Readable while locked,
+    /// so the unlock screen can offer recovery.
+    pub recovery_enabled: bool,
 }
 
 pub struct UnlockedVault {
     payload: VaultPayload,
-    key: Zeroizing<[u8; crypto::KEY_LEN]>,
-    kdf: KdfParams,
+    material: KeyMaterial,
 }
 
 impl UnlockedVault {
     pub fn payload(&self) -> &VaultPayload {
         &self.payload
     }
-
 }
 
 pub struct VaultManager {
@@ -43,27 +45,37 @@ impl VaultManager {
     }
 
     pub fn status(&self) -> VaultStatus {
+        let recovery_enabled = match self.unlocked.as_ref() {
+            Some(unlocked) => unlocked.material.recovery.is_some(),
+            None => self
+                .store
+                .read()
+                .map(|envelope| envelope.recovery.is_some())
+                .unwrap_or(false),
+        };
+
         VaultStatus {
             exists: self.store.exists(),
             unlocked: self.unlocked.is_some(),
+            recovery_enabled,
         }
     }
 
     pub fn create(&mut self, password: &str) -> Result<(), AppError> {
-        validate_master_password(password)?;
+        let password = phrase::canonical_password(password);
+        validate_master_password(&password)?;
 
         if self.store.exists() {
             return Err(AppError::VaultExists);
         }
 
-        let kdf = crypto::new_kdf()?;
-        let key = crypto::derive_key(password, &kdf)?;
+        let material = crypto::new_key_material(&password)?;
         let payload = VaultPayload::new();
         let plaintext = serde_json::to_vec(&payload)?;
-        let envelope = crypto::encrypt_with_key(&plaintext, &key[..], &kdf)?;
+        let envelope = crypto::seal(&plaintext, &material)?;
 
         self.store.write(&envelope)?;
-        self.unlocked = Some(UnlockedVault { payload, key, kdf });
+        self.unlocked = Some(UnlockedVault { payload, material });
 
         Ok(())
     }
@@ -74,18 +86,14 @@ impl VaultManager {
         }
 
         let envelope = self.store.read()?;
-        let (plaintext, key) = crypto::decrypt(&envelope, password)?;
+        let (plaintext, material) = open_with_password(&envelope, password)?;
         let payload: VaultPayload = serde_json::from_slice(&plaintext[..])?;
 
         if payload.schema_version > SCHEMA_VERSION {
             return Err(AppError::UnsupportedVersion(payload.schema_version));
         }
 
-        self.unlocked = Some(UnlockedVault {
-            payload,
-            key,
-            kdf: envelope.kdf,
-        });
+        self.unlocked = Some(UnlockedVault { payload, material });
 
         Ok(())
     }
@@ -106,7 +114,7 @@ impl VaultManager {
             let unlocked = self.unlocked.as_mut().ok_or(AppError::VaultLocked)?;
             unlocked.payload.touch();
             let plaintext = serde_json::to_vec(&unlocked.payload)?;
-            crypto::encrypt_with_key(&plaintext, &unlocked.key[..], &unlocked.kdf)?
+            crypto::seal(&plaintext, &unlocked.material)?
         };
 
         self.store.write(&envelope)
@@ -148,23 +156,121 @@ impl VaultManager {
     }
 
     pub fn change_password(&mut self, current: &str, new: &str) -> Result<(), AppError> {
-        validate_master_password(new)?;
+        let new = phrase::canonical_password(new);
+        validate_master_password(&new)?;
 
         let envelope = self.store.read()?;
-        let (plaintext, _) = crypto::decrypt(&envelope, current)?;
-        let new_kdf = crypto::new_kdf()?;
-        let new_key = crypto::derive_key(new, &new_kdf)?;
-        let new_envelope = crypto::encrypt_with_key(&plaintext[..], &new_key[..], &new_kdf)?;
-        self.store.write(&new_envelope)?;
+        let opened = open_with_password(&envelope, current)?;
+
+        // An unlocked Vault keeps using its in-memory key material, so a
+        // version 1 file is not given a second, different data key here.
+        let (plaintext, mut material) = match self.unlocked.as_ref() {
+            Some(unlocked) => (
+                Zeroizing::new(serde_json::to_vec(&unlocked.payload)?),
+                unlocked.material.clone(),
+            ),
+            None => opened,
+        };
+
+        let (kdf, key_wrap) = crypto::wrap_for_password(&material.dek[..], &new)?;
+        material.kdf = kdf;
+        material.key_wrap = key_wrap;
+        self.store.write(&crypto::seal(&plaintext[..], &material)?)?;
 
         if let Some(unlocked) = self.unlocked.as_mut() {
-            unlocked.key = new_key;
-            unlocked.kdf = new_kdf;
+            unlocked.material = material;
         }
 
         Ok(())
     }
 
+    /// Sets up (or replaces) the Recovery Phrase and returns it. The phrase is
+    /// not stored anywhere: this is the only time it is available.
+    pub fn enable_recovery(&mut self, password: &str) -> Result<String, AppError> {
+        self.require_password(password)?;
+
+        let recovery_phrase = phrase::generate_recovery_phrase()?;
+        let unlocked = self.unlocked.as_mut().ok_or(AppError::VaultLocked)?;
+        let block = crypto::new_recovery_block(&unlocked.material.dek[..], &recovery_phrase)?;
+        let previous = unlocked.material.recovery.replace(block);
+
+        if let Err(error) = self.save() {
+            if let Some(unlocked) = self.unlocked.as_mut() {
+                unlocked.material.recovery = previous;
+            }
+            return Err(error);
+        }
+
+        Ok(recovery_phrase)
+    }
+
+    pub fn disable_recovery(&mut self, password: &str) -> Result<(), AppError> {
+        self.require_password(password)?;
+
+        let unlocked = self.unlocked.as_mut().ok_or(AppError::VaultLocked)?;
+        let previous = unlocked.material.recovery.take();
+
+        if let Err(error) = self.save() {
+            if let Some(unlocked) = self.unlocked.as_mut() {
+                unlocked.material.recovery = previous;
+            }
+            return Err(error);
+        }
+
+        Ok(())
+    }
+
+    /// Opens the Vault with its Recovery Phrase and sets a new Master
+    /// Password. The Recovery Phrase stays valid.
+    pub fn recover(&mut self, recovery_phrase: &str, new_password: &str) -> Result<(), AppError> {
+        let new_password = phrase::canonical_password(new_password);
+        validate_master_password(&new_password)?;
+        let recovery_phrase = phrase::canonical_recovery_phrase(recovery_phrase)?;
+
+        let envelope = self.store.read()?;
+        let (plaintext, dek, recovery) = crypto::open_with_recovery(&envelope, &recovery_phrase)?;
+        let payload: VaultPayload = serde_json::from_slice(&plaintext[..])?;
+
+        if payload.schema_version > SCHEMA_VERSION {
+            return Err(AppError::UnsupportedVersion(payload.schema_version));
+        }
+
+        let (kdf, key_wrap) = crypto::wrap_for_password(&dek[..], &new_password)?;
+        let material = KeyMaterial {
+            dek,
+            kdf,
+            key_wrap,
+            recovery: Some(recovery),
+        };
+        self.store.write(&crypto::seal(&plaintext[..], &material)?)?;
+        self.unlocked = Some(UnlockedVault { payload, material });
+
+        Ok(())
+    }
+
+    /// Re-checks the Master Password before a sensitive change.
+    fn require_password(&self, password: &str) -> Result<(), AppError> {
+        if self.unlocked.is_none() {
+            return Err(AppError::VaultLocked);
+        }
+        open_with_password(&self.store.read()?, password).map(|_| ())
+    }
+}
+
+/// A password typed as a BIP39 phrase is tried in its canonical form first,
+/// then as typed, so a Vault created before phrases were normalized still
+/// opens.
+fn open_with_password(
+    envelope: &VaultEnvelope,
+    password: &str,
+) -> Result<(Zeroizing<Vec<u8>>, KeyMaterial), AppError> {
+    let canonical = phrase::canonical_password(password);
+    match crypto::open(envelope, &canonical) {
+        Err(AppError::InvalidPassword) if canonical != password => {
+            crypto::open(envelope, password)
+        }
+        other => other,
+    }
 }
 
 pub fn validate_master_password(password: &str) -> Result<(), AppError> {
@@ -303,5 +409,155 @@ mod tests {
         ));
         manager.unlock("a different long password").unwrap();
         assert!(manager.status().unlocked);
+    }
+
+    const PASSWORD: &str = "a long test password";
+
+    #[test]
+    fn recovery_is_off_until_it_is_set_up() {
+        let (_directory, mut manager) = manager();
+        manager.create(PASSWORD).unwrap();
+
+        assert!(!manager.status().recovery_enabled);
+        manager.lock();
+        assert!(!manager.status().recovery_enabled);
+    }
+
+    #[test]
+    fn enabling_recovery_needs_the_current_password() {
+        let (_directory, mut manager) = manager();
+        manager.create(PASSWORD).unwrap();
+
+        assert!(matches!(
+            manager.enable_recovery("the wrong password"),
+            Err(AppError::InvalidPassword)
+        ));
+        assert!(!manager.status().recovery_enabled);
+    }
+
+    #[test]
+    fn the_recovery_phrase_resets_a_forgotten_password() {
+        let (_directory, mut manager) = manager();
+        manager.create(PASSWORD).unwrap();
+        manager.mutate(|payload| {
+            payload.vault_id = uuid::Uuid::nil();
+            Ok(())
+        }).unwrap();
+        let recovery_phrase = manager.enable_recovery(PASSWORD).unwrap();
+        assert_eq!(recovery_phrase.split(' ').count(), 24);
+        manager.lock();
+        assert!(manager.status().recovery_enabled);
+
+        manager.recover(&recovery_phrase, "a brand new password").unwrap();
+
+        assert!(manager.status().unlocked);
+        assert_eq!(manager.payload().unwrap().vault_id, uuid::Uuid::nil());
+        manager.lock();
+        assert!(matches!(manager.unlock(PASSWORD), Err(AppError::InvalidPassword)));
+        manager.unlock("a brand new password").unwrap();
+    }
+
+    #[test]
+    fn recovery_accepts_the_phrase_in_any_case_and_spacing() {
+        let (_directory, mut manager) = manager();
+        manager.create(PASSWORD).unwrap();
+        let recovery_phrase = manager.enable_recovery(PASSWORD).unwrap();
+        manager.lock();
+
+        let messy = format!(" {} ", recovery_phrase.to_uppercase().replace(' ', "  "));
+        manager.recover(&messy, "a brand new password").unwrap();
+    }
+
+    #[test]
+    fn a_wrong_or_missing_recovery_phrase_is_rejected() {
+        let (_directory, mut manager) = manager();
+        manager.create(PASSWORD).unwrap();
+
+        assert!(matches!(
+            manager.recover("abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about", "a brand new password"),
+            Err(AppError::RecoveryNotEnabled)
+        ));
+
+        manager.enable_recovery(PASSWORD).unwrap();
+        manager.lock();
+
+        assert!(matches!(
+            manager.recover("abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about", "a brand new password"),
+            Err(AppError::InvalidRecoveryPhrase)
+        ));
+        assert!(matches!(
+            manager.recover("not a phrase", "a brand new password"),
+            Err(AppError::InvalidRecoveryPhrase)
+        ));
+        assert!(!manager.status().unlocked);
+    }
+
+    #[test]
+    fn changing_the_password_keeps_the_recovery_phrase_working() {
+        let (_directory, mut manager) = manager();
+        manager.create(PASSWORD).unwrap();
+        let recovery_phrase = manager.enable_recovery(PASSWORD).unwrap();
+
+        manager.change_password(PASSWORD, "the changed password").unwrap();
+        manager.lock();
+
+        assert!(manager.unlock(PASSWORD).is_err());
+        manager.unlock("the changed password").unwrap();
+        manager.lock();
+        manager.recover(&recovery_phrase, "recovered password").unwrap();
+    }
+
+    #[test]
+    fn disabling_recovery_invalidates_the_phrase() {
+        let (_directory, mut manager) = manager();
+        manager.create(PASSWORD).unwrap();
+        let recovery_phrase = manager.enable_recovery(PASSWORD).unwrap();
+
+        manager.disable_recovery(PASSWORD).unwrap();
+        manager.lock();
+
+        assert!(!manager.status().recovery_enabled);
+        assert!(matches!(
+            manager.recover(&recovery_phrase, "a brand new password"),
+            Err(AppError::RecoveryNotEnabled)
+        ));
+    }
+
+    #[test]
+    fn regenerating_recovery_replaces_the_old_phrase() {
+        let (_directory, mut manager) = manager();
+        manager.create(PASSWORD).unwrap();
+        let first = manager.enable_recovery(PASSWORD).unwrap();
+        let second = manager.enable_recovery(PASSWORD).unwrap();
+        manager.lock();
+
+        assert_ne!(first, second);
+        assert!(matches!(
+            manager.recover(&first, "a brand new password"),
+            Err(AppError::InvalidRecoveryPhrase)
+        ));
+        manager.recover(&second, "a brand new password").unwrap();
+    }
+
+    #[test]
+    fn a_word_phrase_password_works_in_any_case_and_spacing() {
+        let (_directory, mut manager) = manager();
+        let words = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about";
+        manager.create(words).unwrap();
+        manager.lock();
+
+        manager.unlock(&format!("  {}  ", words.to_uppercase().replace(' ', "   "))).unwrap();
+    }
+
+    #[test]
+    fn a_vault_stored_with_a_non_canonical_phrase_password_still_opens() {
+        let (_directory, mut manager) = manager();
+        // Written by an older build, which kept the password exactly as typed.
+        let typed = "Abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon About";
+        let material = crypto::new_key_material(typed).unwrap();
+        let envelope = crypto::seal(&serde_json::to_vec(&VaultPayload::new()).unwrap(), &material).unwrap();
+        manager.store.write(&envelope).unwrap();
+
+        manager.unlock(typed).unwrap();
     }
 }

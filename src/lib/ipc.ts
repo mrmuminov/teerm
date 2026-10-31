@@ -5,6 +5,7 @@ import { tr, translateBackendMessage } from "@/lib/translate";
 export type VaultStatus = {
   exists: boolean;
   unlocked: boolean;
+  recovery_enabled: boolean;
 };
 
 export type AppError = {
@@ -270,6 +271,14 @@ export const ipc = {
   vaultLock: () => invoke<void>("vault_lock"),
   vaultChangePassword: (current: string, next: string) =>
     invoke<void>("vault_change_password", { current, new: next }),
+  vaultGeneratePhrase: (words: 12 | 24) =>
+    invoke<string>("vault_generate_phrase", { words }),
+  vaultEnableRecovery: (password: string) =>
+    invoke<string>("vault_enable_recovery", { password }),
+  vaultDisableRecovery: (password: string) =>
+    invoke<void>("vault_disable_recovery", { password }),
+  vaultRecover: (phrase: string, newPassword: string) =>
+    invoke<void>("vault_recover", { phrase, newPassword }),
   vaultCreateFromExport: (
     path: string,
     passphrase: string | null,

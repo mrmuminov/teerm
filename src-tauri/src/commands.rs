@@ -185,6 +185,44 @@ pub async fn vault_create_from_export(
     Ok(())
 }
 
+/// A random BIP39 word phrase to use as a Master Password.
+#[tauri::command]
+pub fn vault_generate_phrase(words: usize) -> Result<String, AppError> {
+    crate::vault::phrase::generate_password_phrase(words)
+}
+
+/// Sets up the Recovery Phrase and returns it; it is shown once and never
+/// stored.
+#[tauri::command]
+pub async fn vault_enable_recovery(
+    state: State<'_, AppState>,
+    password: String,
+) -> Result<String, AppError> {
+    let mut vault = state.vault.lock().map_err(|_| vault_lock_error())?;
+    vault.enable_recovery(&password)
+}
+
+#[tauri::command]
+pub async fn vault_disable_recovery(
+    state: State<'_, AppState>,
+    password: String,
+) -> Result<(), AppError> {
+    let mut vault = state.vault.lock().map_err(|_| vault_lock_error())?;
+    vault.disable_recovery(&password)
+}
+
+/// Opens a locked Vault with its Recovery Phrase and sets a new Master
+/// Password.
+#[tauri::command]
+pub async fn vault_recover(
+    state: State<'_, AppState>,
+    phrase: String,
+    new_password: String,
+) -> Result<(), AppError> {
+    let mut vault = state.vault.lock().map_err(|_| vault_lock_error())?;
+    vault.recover(&phrase, &new_password)
+}
+
 #[tauri::command]
 pub fn settings_get(state: State<'_, AppState>) -> Result<Settings, AppError> {
     let settings = state.settings.lock().map_err(|_| settings_lock_error())?;

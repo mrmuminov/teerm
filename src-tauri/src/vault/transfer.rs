@@ -159,7 +159,7 @@ impl ExportFile {
                 let passphrase = passphrase
                     .filter(|value| !value.is_empty())
                     .ok_or(AppError::PassphraseRequired)?;
-                let (plaintext, _) = crypto::decrypt(&envelope, passphrase)?;
+                let (plaintext, _) = crypto::open(&envelope, passphrase)?;
                 (serde_json::from_slice(&plaintext[..])?, true)
             }
         };

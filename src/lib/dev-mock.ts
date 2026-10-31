@@ -21,6 +21,14 @@ type DevEventBus = {
   emit: (event: string, payload: unknown) => void;
 };
 
+const MOCK_WORDS = [
+  "abandon", "ability", "able", "about", "above", "absent", "absorb", "abstract",
+  "absurd", "abuse", "access", "accident", "account", "accuse", "achieve", "acid",
+  "acoustic", "acquire", "across", "act", "action", "actor", "actress", "actual",
+  "adapt", "add", "addict", "address", "adjust", "admit", "adult", "advance",
+  "advice", "aerobic", "affair", "afford", "afraid", "again", "age", "agent",
+];
+
 const MOCK_KEY_TYPE = "ssh-ed25519";
 const MOCK_PUBLIC_KEY =
   "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAITeermMockHostKey";
@@ -194,6 +202,7 @@ export function installDevMock() {
   ) as MockMode;
 
   let exists = mode !== "onboarding";
+  let recoveryEnabled = false;
   let unlocked = mode === "unlocked";
   let settings = { ...defaultSettings };
 
@@ -994,7 +1003,7 @@ export function installDevMock() {
 
       switch (command) {
         case "vault_status":
-          return { exists, unlocked };
+          return { exists, unlocked, recovery_enabled: recoveryEnabled };
         case "vault_create":
           exists = true;
           unlocked = true;
@@ -1038,6 +1047,21 @@ export function installDevMock() {
             merge: null,
             backup_path: args?.mode === "replace" ? "/mock/vault.bak" : null,
           };
+        case "vault_generate_phrase":
+          return Array.from({ length: Number(args?.words ?? 12) }, (_, index) =>
+            MOCK_WORDS[(index * 7 + Math.floor(Math.random() * 90)) % MOCK_WORDS.length],
+          ).join(" ");
+        case "vault_enable_recovery":
+          recoveryEnabled = true;
+          return Array.from({ length: 24 }, (_, index) =>
+            MOCK_WORDS[(index * 5 + Math.floor(Math.random() * 90)) % MOCK_WORDS.length],
+          ).join(" ");
+        case "vault_disable_recovery":
+          recoveryEnabled = false;
+          return null;
+        case "vault_recover":
+          unlocked = true;
+          return null;
         case "vault_change_password":
           return null;
         case "settings_get":

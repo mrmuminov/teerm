@@ -14,6 +14,10 @@ pub enum AppError {
     CorruptVault(String),
     #[error("unsupported vault version: {0}")]
     UnsupportedVersion(u32),
+    #[error("the recovery phrase is not valid")]
+    InvalidRecoveryPhrase,
+    #[error("recovery is not set up for this vault")]
+    RecoveryNotEnabled,
     #[error("a passphrase is required to open this export")]
     PassphraseRequired,
     #[error("invalid input: {0}")]
@@ -60,6 +64,8 @@ impl AppError {
             Self::InvalidPassword => "invalid_password",
             Self::CorruptVault(_) => "corrupt_vault",
             Self::UnsupportedVersion(_) => "unsupported_version",
+            Self::InvalidRecoveryPhrase => "invalid_recovery_phrase",
+            Self::RecoveryNotEnabled => "recovery_not_enabled",
             Self::PassphraseRequired => "passphrase_required",
             Self::InvalidInput(_) => "invalid_input",
             Self::NotFound(_) => "not_found",
