@@ -33,7 +33,7 @@ The Rust core owns every Secret and every socket. The webview never receives a p
 ```json
 {
   "format": "teerm-vault",
-  "version": 1,
+  "version": 2,
   "kdf": {
     "algorithm": "argon2id",
     "memory_kib": 65536,
@@ -45,6 +45,8 @@ The Rust core owns every Secret and every socket. The webview never receives a p
     "algorithm": "xchacha20poly1305",
     "nonce": "<base64, 24 bytes>"
   },
+  "key_wrap": { "nonce": "<base64>", "wrapped": "<base64, DEK wrapped by the password key>" },
+  "recovery": { "kdf": { "...": "own salt" }, "key_wrap": { "nonce": "<base64>", "wrapped": "<base64>" } },
   "payload": "<base64 ciphertext>"
 }
 ```
