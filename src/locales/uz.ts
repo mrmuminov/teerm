@@ -485,6 +485,10 @@ const uz: Record<string, string> = {
   "running port forward": "ishlayotgan port yo‘naltirish",
   "tag": "teg",
   "transfer": "uzatish",
+  "Start": "Boshlash",
+  "Stop": "To‘xtatish",
+  "Running": "Ishlayapti",
+  "Connect to this Host to start it": "Boshlash uchun avval shu hostga ulaning",
 };
 
 export default uz;

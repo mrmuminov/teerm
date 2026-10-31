@@ -6,6 +6,7 @@ import {
   Pencil,
   Play,
   Server,
+  Square,
   ShieldCheck,
   Trash2,
 } from "lucide-react";
@@ -16,12 +17,15 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { Host, PortForward } from "@/lib/ipc";
 import { hostConnectionLabel } from "@/lib/inventory-helpers";
+import { cn } from "@/lib/utils";
+import { useForwardsStore, type ForwardRuntime } from "@/stores/forwards";
 import { useInventoryStore } from "@/stores/inventory";
 import { useSessionsStore } from "@/stores/sessions";
 import { useUiStore } from "@/stores/ui";
 import { useT } from "@/lib/i18n";
 
 const EMPTY_FORWARDS: PortForward[] = [];
+const EMPTY_RUNTIME: Record<string, ForwardRuntime> = {};
 
 function InfoRow({
   label,
@@ -57,6 +61,21 @@ export function HostDetailPane({ host }: { host: Host }) {
   const loadForwards = useInventoryStore((state) => state.loadForwards);
   const deleteHost = useInventoryStore((state) => state.deleteHost);
   const connect = useSessionsStore((state) => state.connect);
+  const sshSessionId = useSessionsStore(
+    (state) =>
+      state.tabs.find(
+        (tab) =>
+          tab.hostId === host.id &&
+          tab.status === "connected" &&
+          tab.sshSessionId,
+      )?.sshSessionId ?? null,
+  );
+  const runtime = useForwardsStore((state) =>
+    sshSessionId ? (state.bySession[sshSessionId] ?? EMPTY_RUNTIME) : EMPTY_RUNTIME,
+  );
+  const refreshForwards = useForwardsStore((state) => state.refresh);
+  const startForward = useForwardsStore((state) => state.start);
+  const stopForward = useForwardsStore((state) => state.stop);
   const openHostSheet = useUiStore((state) => state.openHostSheet);
   const selectHost = useUiStore((state) => state.selectHost);
 
@@ -66,6 +85,12 @@ export function HostDetailPane({ host }: { host: Host }) {
   useEffect(() => {
     void loadForwards(host.id);
   }, [host.id, loadForwards]);
+
+  useEffect(() => {
+    if (sshSessionId) {
+      void refreshForwards(sshSessionId);
+    }
+  }, [sshSessionId, refreshForwards]);
 
   const group = groups.find((candidate) => candidate.id === host.group_id);
   const key = keys.find((candidate) => candidate.id === host.key_id);
@@ -200,11 +225,30 @@ export function HostDetailPane({ host }: { host: Host }) {
               {t("No saved rules. Add local (-L) or remote (-R) tunnels in the Host editor.")}</p>
           ) : (
             <div className="divide-y divide-border/50">
-              {forwards.map((forward) => (
+              {forwards.map((forward) => {
+                const current = runtime[forward.id];
+                const running = current?.state === "running";
+                return (
                 <div
                   key={forward.id}
                   className="flex items-center gap-3 px-4 py-2.5"
                 >
+                  <span
+                    aria-hidden="true"
+                    title={
+                      running
+                        ? t("Running")
+                        : (current?.message ?? undefined)
+                    }
+                    className={cn(
+                      "size-1.5 shrink-0 rounded-full",
+                      running
+                        ? "bg-primary shadow-[0_0_6px_var(--primary)]"
+                        : current?.state === "failed"
+                          ? "bg-destructive"
+                          : "bg-muted-foreground/30",
+                    )}
+                  />
                   <Badge
                     variant="secondary"
                     className="h-5 w-9 shrink-0 justify-center px-1 text-[9px] uppercase"
@@ -220,8 +264,34 @@ export function HostDetailPane({ host }: { host: Host }) {
                     <span className="text-[9px] tracking-wide text-primary uppercase">
                       {t("auto")}</span>
                   )}
+                  <Button
+                    variant="ghost"
+                    size="xs"
+                    disabled={!sshSessionId}
+                    title={
+                      sshSessionId ? undefined : t("Connect to this Host to start it")
+                    }
+                    onClick={() =>
+                      sshSessionId &&
+                      void (running
+                        ? stopForward(sshSessionId, forward.id)
+                        : startForward(sshSessionId, forward.id))
+                    }
+                    className={cn(
+                      "h-6 gap-1.5 rounded-md px-2 text-[10.5px]",
+                      running && "text-primary",
+                    )}
+                  >
+                    {running ? (
+                      <Square data-icon="inline-start" />
+                    ) : (
+                      <Play data-icon="inline-start" />
+                    )}
+                    {running ? t("Stop") : t("Start")}
+                  </Button>
                 </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </section>

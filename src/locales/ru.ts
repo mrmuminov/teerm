@@ -485,6 +485,10 @@ const ru: Record<string, string> = {
   "running port forward": "работающий проброс порта",
   "tag": "тег",
   "transfer": "передача",
+  "Start": "Запустить",
+  "Stop": "Остановить",
+  "Running": "Работает",
+  "Connect to this Host to start it": "Подключитесь к этому хосту, чтобы запустить",
 };
 
 export default ru;

@@ -45,6 +45,7 @@ function Button({
   variant = "default",
   size = "default",
   asChild = false,
+  type,
   ...props
 }: React.ComponentProps<"button"> &
   VariantProps<typeof buttonVariants> & {
@@ -54,6 +55,9 @@ function Button({
 
   return (
     <Comp
+      // A bare <button> submits its form. Buttons here are actions unless
+      // they say otherwise, so a stray click never saves a surrounding form.
+      {...(asChild ? {} : { type: type ?? "button" })}
       data-slot="button"
       data-variant={variant}
       data-size={size}
