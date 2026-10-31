@@ -402,6 +402,14 @@ pub async fn session_close(
 }
 
 #[tauri::command]
+pub async fn session_latency(
+    state: State<'_, AppState>,
+    session_id: Uuid,
+) -> Result<u64, AppError> {
+    state.ssh.latency_ms(session_id).await
+}
+
+#[tauri::command]
 pub async fn session_auth_respond(
     state: State<'_, AppState>,
     session_id: Uuid,

@@ -1006,6 +1006,8 @@ export function installDevMock() {
           unlocked = false;
           clearMockSftpState();
           return null;
+        case "session_latency":
+          return 18 + Math.round(Math.random() * 14);
         case "vault_create_from_export":
           return null;
         case "vault_export":

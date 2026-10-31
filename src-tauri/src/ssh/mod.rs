@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex as StdMutex};
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 use base64::engine::general_purpose::STANDARD as BASE64;
 use base64::Engine;
@@ -18,6 +18,7 @@ use crate::forward::{new_remote_targets, serve_remote_connection, RemoteTargets}
 
 const CONNECT_TIMEOUT: Duration = Duration::from_secs(20);
 const AUTH_PROMPT_TIMEOUT: Duration = Duration::from_secs(120);
+const PING_TIMEOUT: Duration = Duration::from_secs(5);
 const MAX_WRITE_BYTES: usize = 1024 * 1024;
 
 #[derive(Debug, Clone)]
@@ -615,6 +616,20 @@ impl SshManager {
             handle: Arc::clone(&entry.handle),
             remote_targets: Arc::clone(&entry.remote_targets),
         })
+    }
+
+    /// Round-trip time of an SSH ping, in milliseconds.
+    pub async fn latency_ms(&self, session_id: Uuid) -> Result<u64, AppError> {
+        let link = self.forward_link(session_id).await?;
+        let started = Instant::now();
+
+        let ping = async { link.handle.lock().await.send_ping().await };
+        tokio::time::timeout(PING_TIMEOUT, ping)
+            .await
+            .map_err(|_| AppError::Internal("the server did not answer in time".into()))?
+            .map_err(|error| AppError::Internal(format!("could not ping the server: {error}")))?;
+
+        Ok(started.elapsed().as_millis() as u64)
     }
 
     pub async fn close(&self, session_id: Uuid) {

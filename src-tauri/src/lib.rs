@@ -38,6 +38,7 @@ pub fn run() {
             commands::session_write,
             commands::session_resize,
             commands::session_close,
+            commands::session_latency,
             commands::session_auth_respond,
             commands::sftp_open,
             commands::sftp_list,

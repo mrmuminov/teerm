@@ -348,6 +348,8 @@ export const ipc = {
     invoke<void>("session_resize", { sessionId, cols, rows }),
   sessionClose: (sessionId: string) =>
     invoke<void>("session_close", { sessionId }),
+  sessionLatency: (sessionId: string) =>
+    invoke<number>("session_latency", { sessionId }),
   sessionAuthRespond: (sessionId: string, responses: string[] | null) =>
     invoke<void>("session_auth_respond", { sessionId, responses }),
 

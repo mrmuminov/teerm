@@ -181,6 +181,7 @@ Password edit semantics: omitted field = keep existing; explicit `clear_password
 
 | Command | Arguments | Returns |
 |---|---|---|
+| `session_latency` | `{ session_id }` → round-trip time in ms (SSH ping, 5 s timeout); the status bar polls it every 5 s for the active Session |
 | `session_open` | `{ host_id, cols, rows, channel }` | `{ session_id }` |
 | `session_write` | `{ session_id, data }` | — |
 | `session_resize` | `{ session_id, cols, rows }` | — |

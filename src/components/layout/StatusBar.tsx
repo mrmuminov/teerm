@@ -1,10 +1,43 @@
+import { useEffect, useState } from "react";
 import { ArrowLeftRight, ArrowUpDown, LockKeyhole, Terminal } from "lucide-react";
 
+import { ipc } from "@/lib/ipc";
 import { useForwardsStore } from "@/stores/forwards";
 import { useSessionsStore } from "@/stores/sessions";
 import { useSettingsStore } from "@/stores/settings";
 import { useSftpStore } from "@/stores/sftp";
 import { useUiStore } from "@/stores/ui";
+
+const LATENCY_INTERVAL_MS = 5000;
+
+/** Round-trip time of the active, connected Session; null when unknown. */
+function useLatency(sshSessionId: string | null): number | null {
+  const [latency, setLatency] = useState<number | null>(null);
+
+  useEffect(() => {
+    setLatency(null);
+    if (!sshSessionId) {
+      return;
+    }
+
+    let disposed = false;
+    const measure = () => {
+      ipc
+        .sessionLatency(sshSessionId)
+        .then((ms) => !disposed && setLatency(ms))
+        .catch(() => !disposed && setLatency(null));
+    };
+
+    measure();
+    const timer = window.setInterval(measure, LATENCY_INTERVAL_MS);
+    return () => {
+      disposed = true;
+      window.clearInterval(timer);
+    };
+  }, [sshSessionId]);
+
+  return latency;
+}
 
 export function StatusBar() {
   const settings = useSettingsStore((state) => state.settings);
@@ -14,6 +47,12 @@ export function StatusBar() {
   const forwardsBySession = useForwardsStore((state) => state.bySession);
   const transfers = useSftpStore((state) => state.transfers);
 
+  const latency = useLatency(
+    (() => {
+      const tab = tabs.find((item) => item.id === activeSessionId);
+      return tab?.status === "connected" ? (tab.sshSessionId ?? null) : null;
+    })(),
+  );
   const autoLock = settings?.auto_lock_minutes ?? 15;
   const connected = tabs.filter((tab) => tab.status === "connected");
   const activeTab = tabs.find((tab) => tab.id === activeSessionId) ?? null;
@@ -57,6 +96,9 @@ export function StatusBar() {
             {runningTransfers}{" "}
             {runningTransfers === 1 ? "transfer" : "transfers"}
           </span>
+        )}
+        {latency !== null && (
+          <span className="tabular-nums">{latency} ms</span>
         )}
         {activeTab?.keyType && (
           <span className="font-mono">{activeTab.keyType}</span>
