@@ -152,10 +152,6 @@ pub fn parse_export(bytes: &[u8]) -> Result<ExportFile, AppError> {
 }
 
 impl ExportFile {
-    pub fn needs_passphrase(&self) -> bool {
-        matches!(self, ExportFile::Full(_))
-    }
-
     pub fn open(self, passphrase: Option<&str>) -> Result<Incoming, AppError> {
         let (payload, includes_secrets) = match self {
             ExportFile::Metadata(payload) => (payload, false),
@@ -488,10 +484,7 @@ mod tests {
         payload.keys.push(key("laptop"));
 
         let bytes = export_full(&payload, PASSPHRASE).unwrap();
-        let file = parse_export(&bytes).unwrap();
-        assert!(file.needs_passphrase());
-
-        let incoming = file.open(Some(PASSPHRASE)).unwrap();
+        let incoming = parse_export(&bytes).unwrap().open(Some(PASSPHRASE)).unwrap();
         assert!(incoming.includes_secrets);
         assert_eq!(incoming.payload.hosts[0].password.as_deref(), Some("hunter2-secret"));
         assert_eq!(incoming.payload.keys[0].private_key, "PRIVATE-KEY-MATERIAL");

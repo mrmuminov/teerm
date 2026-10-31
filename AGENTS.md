@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-Teerm is a local-first desktop SSH client: Tauri v2 shell, Rust core (`russh`, `russh-sftp`), React 19 + TypeScript + Vite + Tailwind v4 + shadcn/ui (radix-nova) + Zustand frontend, xterm.js terminal. Not a git repository.
+Teerm is a local-first desktop SSH client: Tauri v2 shell, Rust core (`russh`, `russh-sftp`), React 19 + TypeScript + Vite + Tailwind v4 + shadcn/ui (radix-nova) + Zustand frontend, xterm.js terminal.
 
 Read `CONTEXT.md` before naming things: it defines the domain vocabulary (Host, Host Group, Tag, Key, Keychain, Port Forward, Session, Tab, Vault, Master Password, Secret, Known Host, ...) and lists terms to avoid (e.g. say "Host", not "server"/"profile"). `docs/v1-design.md` is the accepted technical design (vault envelope, entities, IPC); `docs/adr/` holds the decisions (Tauri + Rust core; local-first vault, no account in v1).
 
@@ -14,7 +14,7 @@ Read `CONTEXT.md` before naming things: it defines the domain vocabulary (Host, 
 - `npm run dev` — Vite only, in a plain browser. In dev mode `src/main.tsx` installs `src/lib/dev-mock.ts`, a browser-only IPC/event mock (modes: onboarding / locked / unlocked), so the UI works without Rust. `isDevMock()` in `src/lib/env.ts` detects it.
 - `npm run build` — `tsc` typecheck + `vite build` (this is the only frontend type/lint check; no ESLint or JS test runner is configured).
 - `npm run tauri build` — production bundle.
-- Rust (run in `src-tauri/`): `cargo test` for all tests, `cargo test <name>` for a single test, `cargo clippy`. Tests are inline `#[cfg(test)]` modules (ssh, sftp, inventory/service, vault/{store,crypto,manager}); `tempfile` is the dev-dependency for filesystem tests.
+- Rust (run in `src-tauri/`): `cargo test` for all tests, `cargo test <name>` for a single test, `cargo clippy`. Tests are inline `#[cfg(test)]` modules (ssh, sftp, forward, inventory/service, vault/{store,crypto,manager,transfer}); `tempfile` is the dev-dependency for filesystem tests.
 
 ## Architecture
 
@@ -22,7 +22,7 @@ Read `CONTEXT.md` before naming things: it defines the domain vocabulary (Host, 
 
 **Rust (`src-tauri/src`):**
 - `lib.rs` registers every Tauri command in `generate_handler!`; adding a command means writing it in `commands.rs` *and* listing it there. `commands.rs` is a thin layer over the modules below.
-- `state.rs` `AppState` holds `Mutex<VaultManager>`, `SshManager`, `SftpManager`, `Mutex<Settings>`; constructed in `setup` from the OS app-data dir.
+- `state.rs` `AppState` holds `Mutex<VaultManager>`, `SshManager`, `SftpManager`, `ForwardManager`, `Mutex<Settings>`; constructed in `setup` from the OS app-data dir.
 - `vault/` — encrypted-at-rest data set: `crypto.rs` (Argon2id → XChaCha20-Poly1305, header bound as AAD), `store.rs` (atomic temp-write + rename, `.bak` of previous revision), `model.rs` (payload entities), `manager.rs` (lock/unlock state; key material zeroized on lock). `transfer.rs` holds Export/Import (encrypted full export, secret-free metadata export, UUID-based merge with conflict duplication and reference remapping, replace). Entities use UUIDv7, RFC 3339 timestamps and soft deletion (`deleted_at`) so sync can be added later.
 - `inventory/` — `service.rs` implements Host/Group/Tag/Key/Port Forward/Known Host CRUD against the unlocked vault; `dto.rs` is the shape exposed to the frontend.
 - `ssh/` and `sftp/` — live Session management (PTY, auth prompts, host-key verification) and SFTP operations/transfers. They push data to the UI via Tauri events.
