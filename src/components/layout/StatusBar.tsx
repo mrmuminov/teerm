@@ -74,7 +74,7 @@ export function StatusBar() {
         <span className="text-border">|</span>
         <span className="flex items-center gap-1">
           <LockKeyhole className="size-2.5" />
-          {t("Auto-lock")}{" "}{autoLock > 0 ? `${autoLock} min` : "off"}
+          {t("Auto-lock")}{" "}{autoLock > 0 ? t("{autoLock} min", { autoLock }) : t("off")}
         </span>
       </div>
 

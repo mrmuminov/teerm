@@ -4,6 +4,7 @@ import { Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useT } from "@/lib/i18n";
 
 type PasswordFieldProps = {
   id: string;
@@ -28,6 +29,7 @@ export function PasswordField({
   disabled = false,
   onEnter,
 }: PasswordFieldProps) {
+  const t = useT();
   const [visible, setVisible] = useState(false);
 
   return (
@@ -58,7 +60,7 @@ export function PasswordField({
           className="absolute top-1/2 right-1 -translate-y-1/2 text-muted-foreground hover:text-foreground"
           onClick={() => setVisible((current) => !current)}
           tabIndex={-1}
-          aria-label={visible ? "Hide password" : "Show password"}
+          aria-label={visible ? t("Hide password") : t("Show password")}
         >
           {visible ? <EyeOff /> : <Eye />}
         </Button>

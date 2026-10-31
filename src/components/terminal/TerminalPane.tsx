@@ -413,7 +413,7 @@ export function TerminalPane({
       {showStatusPill && (
         <div className="pointer-events-none absolute top-3 right-3 z-10 flex items-center gap-1.5 rounded-full border border-primary/20 bg-background/75 px-2.5 py-1 text-[10px] font-medium text-primary shadow-lg shadow-black/30 backdrop-blur">
           <Loader2 className="size-3 animate-spin" />
-          {tab.status === "connecting" ? "Connecting…" : "Authenticating…"}
+          {tab.status === "connecting" ? t("Connecting…") : t("Authenticating…")}
         </div>
       )}
 
@@ -437,14 +437,14 @@ export function TerminalPane({
 
             <h2 className="mt-3 text-[13px] font-semibold text-foreground">
               {tab.status === "error"
-                ? "Session failed"
-                : "Session disconnected"}
+                ? t("Session failed")
+                : t("Session disconnected")}
             </h2>
             <p className="mt-1.5 text-[11px] leading-relaxed text-muted-foreground">
               {tab.message ??
                 (tab.status === "error"
-                  ? "The connection could not be established."
-                  : "The connection to this host has ended.")}
+                  ? t("The connection could not be established.")
+                  : t("The connection to this host has ended."))}
             </p>
             <p className="mt-3 truncate font-mono text-[10px] text-muted-foreground/80">
               {tab.username}@{tab.address}

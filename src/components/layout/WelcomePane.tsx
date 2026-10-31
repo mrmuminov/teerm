@@ -65,7 +65,7 @@ function TerminalPreview({ hostCount }: { hostCount: number }) {
           <span className="ml-4 text-foreground/60">
             {hostCount === 0
               ? "waiting for your first host"
-              : `${hostCount} host${hostCount === 1 ? "" : "s"} ready`}
+              : t(hostCount === 1 ? "{count} host ready" : "{count} hosts ready", { count: hostCount })}
           </span>
         </p>
         <p className="pt-2">

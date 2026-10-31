@@ -78,7 +78,7 @@ function KeyCard({
           <Button
             variant="ghost"
             size="icon-sm"
-            aria-label={`Rename ${item.name}`}
+            aria-label={t("Rename {name}", { name: item.name })}
             onClick={onRename}
           >
             <Pencil />
@@ -86,7 +86,7 @@ function KeyCard({
           <Button
             variant="ghost"
             size="icon-sm"
-            aria-label={`Delete ${item.name}`}
+            aria-label={t("Delete {name}", { name: item.name })}
             onClick={onDelete}
             className="text-muted-foreground hover:text-destructive"
           >
@@ -252,7 +252,7 @@ export function KeychainPane() {
       <ConfirmDialog
         open={deleting !== null}
         onOpenChange={(open) => !open && setDeleting(null)}
-        title={`Delete Key "${deleting?.name ?? ""}"?`}
+        title={t("Delete Key \"{name}\"?", { name: deleting?.name ?? "" })}
         description={t("Hosts using this Key must be reassigned first. The private material is wiped from the Vault.")}
         confirmLabel={t("Delete key")}
         destructive

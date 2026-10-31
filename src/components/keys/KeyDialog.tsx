@@ -56,13 +56,13 @@ export function KeyDialog() {
     setBusy(false);
 
     if (!result.ok) {
-      toast.error(isImport ? "Could not import Key" : "Could not generate Key", {
+      toast.error(isImport ? t("Could not import Key") : t("Could not generate Key"), {
         description: result.error,
       });
       return;
     }
 
-    toast.success(isImport ? "Key imported" : "ed25519 key generated", {
+    toast.success(isImport ? t("Key imported") : "ed25519 key generated", {
       description: `${result.value.key_type} · ${result.value.fingerprint}`,
     });
     closeKeyDialog();
@@ -75,11 +75,11 @@ export function KeyDialog() {
     >
       <DialogContent className="sm:max-w-[460px]">
         <DialogHeader>
-          <DialogTitle>{isImport ? "Import Key" : "Generate Key"}</DialogTitle>
+          <DialogTitle>{isImport ? t("Import Key") : t("Generate Key")}</DialogTitle>
           <DialogDescription>
             {isImport
-              ? "Paste an OpenSSH private key. It is sealed inside the Vault and never reaches the webview again."
-              : "Creates an ed25519 key pair inside the Vault. Copy the public key to your server."}
+              ? t("Paste an OpenSSH private key. It is sealed inside the Vault and never reaches the webview again.")
+              : t("Creates an ed25519 key pair inside the Vault. Copy the public key to your server.")}
           </DialogDescription>
         </DialogHeader>
 
@@ -90,7 +90,7 @@ export function KeyDialog() {
               id="key-name"
               value={name}
               onChange={(event) => setName(event.target.value)}
-              placeholder={isImport ? "Work laptop" : "Teerm ed25519"}
+              placeholder={isImport ? t("Work laptop") : t("Teerm ed25519")}
               required
               autoFocus
               maxLength={120}
@@ -155,7 +155,7 @@ export function KeyDialog() {
               ) : (
                 <KeyRound data-icon="inline-start" />
               )}
-              {isImport ? "Import Key" : "Generate Key"}
+              {isImport ? t("Import Key") : t("Generate Key")}
             </Button>
           </DialogFooter>
         </form>

@@ -103,7 +103,7 @@ export function SettingsPane() {
     } else {
       const reason = useSettingsStore.getState().error;
       toast.error(t("Could not save settings"), {
-        description: reason ?? "Try again in a moment.",
+        description: reason ?? t("Try again in a moment."),
       });
     }
   }
@@ -147,7 +147,7 @@ export function SettingsPane() {
             <TriangleAlert />
             <AlertTitle>{t("Could not load settings")}</AlertTitle>
             <AlertDescription className="flex flex-col gap-3">
-              {error ?? "Unknown error."}
+              {error ?? t("Unknown error.")}
               <Button
                 variant="outline"
                 size="sm"
@@ -372,7 +372,7 @@ export function SettingsPane() {
                   className="min-w-0 flex-1 truncate font-mono text-[10.5px] text-muted-foreground"
                   title={settings.download_dir ?? undefined}
                 >
-                  {settings.download_dir ?? "Ask on first download"}
+                  {settings.download_dir ?? t("Ask on first download")}
                 </span>
                 <Button
                   variant="outline"
@@ -402,7 +402,7 @@ export function SettingsPane() {
 
             <SettingsRow
               label={t("Platform")}
-              description={appInfo?.os ?? "Unknown platform"}
+              description={appInfo?.os ?? t("Unknown platform")}
             >
               <span className="font-mono text-[11px] capitalize text-muted-foreground">
                 {appInfo?.os ?? "—"}

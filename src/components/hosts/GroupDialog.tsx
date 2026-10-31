@@ -88,7 +88,7 @@ export function GroupDialog({
       return;
     }
 
-    toast.success(group ? "Host Group updated" : "Host Group created");
+    toast.success(group ? t("Host Group updated") : t("Host Group created"));
     onOpenChange(false);
   }
 
@@ -97,7 +97,7 @@ export function GroupDialog({
       <DialogContent className="sm:max-w-[400px]">
         <DialogHeader>
           <DialogTitle>
-            {group ? "Rename Host Group" : "New Host Group"}
+            {group ? t("Rename Host Group") : t("New Host Group")}
           </DialogTitle>
           <DialogDescription>
             {t("Groups nest freely. A Host belongs to at most one group.")}</DialogDescription>
@@ -145,7 +145,7 @@ export function GroupDialog({
               {t("Cancel")}</Button>
             <Button type="submit" disabled={busy}>
               {busy && <Loader2 className="animate-spin" data-icon="inline-start" />}
-              {group ? "Save" : "Create group"}
+              {group ? t("Save") : t("Create group")}
             </Button>
           </DialogFooter>
         </form>

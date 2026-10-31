@@ -124,9 +124,9 @@ export function ExportDialog({
                   : "border-border/70 hover:bg-accent/40",
               )}
             >
-              <div className="text-[12px] font-medium">{option.title}</div>
+              <div className="text-[12px] font-medium">{t(option.title)}</div>
               <div className="text-[11px] text-muted-foreground">
-                {option.description}
+                {t(option.description)}
               </div>
             </button>
           ))}

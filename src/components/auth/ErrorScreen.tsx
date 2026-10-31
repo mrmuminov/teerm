@@ -40,7 +40,7 @@ export function ErrorScreen({ message, onRetry }: ErrorScreenProps) {
             <ShieldAlert />
             <AlertTitle>{t("Startup error")}</AlertTitle>
             <AlertDescription>
-              {message ?? "Unknown error. Please restart the app."}
+              {message ?? t("Unknown error. Please restart the app.")}
             </AlertDescription>
           </Alert>
 

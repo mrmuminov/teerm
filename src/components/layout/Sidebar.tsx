@@ -88,6 +88,7 @@ function HostRow({
   onConnect: () => void;
   onEdit: () => void;
 }) {
+  const t = useT();
   return (
     <div
       onDoubleClick={onConnect}
@@ -122,7 +123,7 @@ function HostRow({
       <Button
         variant="ghost"
         size="icon-xs"
-        aria-label={`Edit ${host.label}`}
+        aria-label={t("Edit {label}", { label: host.label })}
         onClick={(event) => {
           event.stopPropagation();
           onEdit();
@@ -157,6 +158,7 @@ function GroupTreeRow({
   groups: HostGroup[];
   activeGroupId: string | null;
 }) {
+  const t = useT();
   const isOpen = !collapsed.has(node.group.id);
   const active = activeGroupId === node.group.id;
   const descendants = groupDescendantIds(groups, node.group.id);
@@ -178,7 +180,7 @@ function GroupTreeRow({
       >
         <button
           type="button"
-          aria-label={isOpen ? "Collapse group" : "Expand group"}
+          aria-label={isOpen ? t("Collapse group") : t("Expand group")}
           onClick={() => onToggle(node.group.id)}
           className={cn(
             "flex size-4 shrink-0 items-center justify-center rounded",
@@ -211,7 +213,7 @@ function GroupTreeRow({
         <Button
           variant="ghost"
           size="icon-xs"
-          aria-label={`Edit ${node.group.name}`}
+          aria-label={t("Edit {name}", { name: node.group.name })}
           onClick={() => onEdit(node.group)}
           className="opacity-0 transition-opacity group-hover:opacity-100"
         >
@@ -220,7 +222,7 @@ function GroupTreeRow({
         <Button
           variant="ghost"
           size="icon-xs"
-          aria-label={`Delete ${node.group.name}`}
+          aria-label={t("Delete {name}", { name: node.group.name })}
           onClick={() => onDelete(node.group)}
           className="text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 hover:text-destructive"
         >
@@ -596,8 +598,8 @@ export function Sidebar() {
               {filter.filtered.length === 0 ? (
                 <p className="px-2 py-1.5 text-[11px] leading-relaxed text-muted-foreground">
                   {hosts.length === 0
-                    ? "No hosts yet. Add your first server."
-                    : "No Hosts match this filter."}
+                    ? t("No hosts yet. Add your first server.")
+                    : t("No Hosts match this filter.")}
                 </p>
               ) : (
                 filter.filtered.map((host) => (
@@ -644,7 +646,7 @@ export function Sidebar() {
                     <Button
                       variant="ghost"
                       size="icon-xs"
-                      aria-label={`Copy ${key.name} public key`}
+                      aria-label={t("Copy {name} public key", { name: key.name })}
                       onClick={() => {
                         void navigator.clipboard.writeText(key.public_key);
                         toast.success(t("Public key copied"));
@@ -656,7 +658,7 @@ export function Sidebar() {
                     <Button
                       variant="ghost"
                       size="icon-xs"
-                      aria-label={`Delete ${key.name}`}
+                      aria-label={t("Delete {name}", { name: key.name })}
                       onClick={() => setDeletingKey(key.id)}
                       className="text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 hover:text-destructive"
                     >
@@ -704,7 +706,7 @@ export function Sidebar() {
                     <Button
                       variant="ghost"
                       size="icon-xs"
-                      aria-label={`Forget ${known.address}`}
+                      aria-label={t("Forget {address}", { address: known.address })}
                       onClick={() => setDeletingKnown(known.id)}
                       className="text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 hover:text-destructive"
                     >
@@ -775,7 +777,7 @@ export function Sidebar() {
       <ConfirmDialog
         open={deletingGroup !== null}
         onOpenChange={(open) => !open && setDeletingGroup(null)}
-        title={`Delete Host Group "${deletingGroup?.name ?? ""}"?`}
+        title={t("Delete Host Group \"{name}\"?", { name: deletingGroup?.name ?? "" })}
         description={t("Child groups and Hosts move to its parent. No Hosts are deleted.")}
         confirmLabel={t("Delete group")}
         destructive

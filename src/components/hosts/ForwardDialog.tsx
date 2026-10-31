@@ -112,7 +112,7 @@ export function ForwardDialog({
       return;
     }
 
-    toast.success(forward ? "Port forward updated" : "Port forward added");
+    toast.success(forward ? t("Port forward updated") : t("Port forward added"));
     onOpenChange(false);
   }
 
@@ -123,12 +123,12 @@ export function ForwardDialog({
       <DialogContent className="sm:max-w-[440px]">
         <DialogHeader>
           <DialogTitle>
-            {forward ? "Edit port forward" : "New port forward"}
+            {forward ? t("Edit port forward") : t("New port forward")}
           </DialogTitle>
           <DialogDescription>
             {isLocal
-              ? "Teerm listens on this device and the server connects to the target."
-              : "The server listens and Teerm connects to the target from this device."}
+              ? t("Teerm listens on this device and the server connects to the target.")
+              : t("The server listens and Teerm connects to the target from this device.")}
           </DialogDescription>
         </DialogHeader>
 
@@ -150,7 +150,7 @@ export function ForwardDialog({
           </div>
 
           <div className="grid gap-1.5">
-            <Label>{isLocal ? "Listen on this device" : "Listen on the server"}</Label>
+            <Label>{isLocal ? t("Listen on this device") : t("Listen on the server")}</Label>
             <div className="flex gap-2">
               <Input
                 value={form.bindAddress}
@@ -171,7 +171,7 @@ export function ForwardDialog({
           </div>
 
           <div className="grid gap-1.5">
-            <Label>{isLocal ? "Target (from the server)" : "Target (from this device)"}</Label>
+            <Label>{isLocal ? t("Target (from the server)") : t("Target (from this device)")}</Label>
             <div className="flex gap-2">
               <Input
                 value={form.targetHost}
@@ -213,7 +213,7 @@ export function ForwardDialog({
               {t("Cancel")}</Button>
             <Button type="submit" disabled={busy}>
               {busy && <Loader2 className="animate-spin" data-icon="inline-start" />}
-              {forward ? "Save changes" : "Add rule"}
+              {forward ? t("Save changes") : t("Add rule")}
             </Button>
           </DialogFooter>
         </form>

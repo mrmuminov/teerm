@@ -10,6 +10,7 @@ import {
   type TransferProgress,
   type TransferState,
 } from "@/lib/ipc";
+import { tr } from "@/lib/translate";
 
 export type SftpTabState = {
   visible: boolean;
@@ -492,8 +493,8 @@ export const useSftpStore = create<SftpStore>()((set, get) => ({
     const clean = cleanName(name);
     if (!tab || tab.sessionId !== sessionId || !clean) {
       if (!clean) {
-        toast.error("Invalid folder name", {
-          description: "Use a name without slashes.",
+        toast.error(tr("Invalid folder name"), {
+          description: tr("Use a name without slashes."),
         });
       }
       return false;
@@ -504,7 +505,7 @@ export const useSftpStore = create<SftpStore>()((set, get) => ({
       await get().refresh(tabId, sessionId);
       return true;
     } catch (error) {
-      toast.error("Could not create folder", {
+      toast.error(tr("Could not create folder"), {
         description: errorMessage(error),
       });
       return false;
@@ -514,8 +515,8 @@ export const useSftpStore = create<SftpStore>()((set, get) => ({
   rename: async (tabId, sessionId, entry, name) => {
     const clean = cleanName(name);
     if (!clean) {
-      toast.error("Invalid name", {
-        description: "Use a name without slashes.",
+      toast.error(tr("Invalid name"), {
+        description: tr("Use a name without slashes."),
       });
       return false;
     }
@@ -533,7 +534,7 @@ export const useSftpStore = create<SftpStore>()((set, get) => ({
       await get().refresh(tabId, sessionId);
       return true;
     } catch (error) {
-      toast.error("Could not rename item", {
+      toast.error(tr("Could not rename item"), {
         description: errorMessage(error),
       });
       return false;
@@ -546,7 +547,7 @@ export const useSftpStore = create<SftpStore>()((set, get) => ({
       await get().refresh(tabId, sessionId);
       return true;
     } catch (error) {
-      toast.error(entry.isDir ? "Could not delete folder" : "Could not delete file", {
+      toast.error(entry.isDir ? tr("Could not delete folder") : tr("Could not delete file"), {
         description: errorMessage(error),
       });
       return false;
@@ -605,7 +606,7 @@ export const useSftpStore = create<SftpStore>()((set, get) => ({
           get().handleProgress(pending);
         }
       } catch (error) {
-        toast.error(`Could not upload ${name}`, {
+        toast.error(tr("Could not upload {name}", { name }), {
           description: errorMessage(error),
         });
       }
@@ -619,12 +620,12 @@ export const useSftpStore = create<SftpStore>()((set, get) => ({
     }
 
     if (entry.isDir) {
-      toast.info("Folder download is not supported yet");
+      toast.info(tr("Folder download is not supported yet"));
       return;
     }
 
     if (!localDir?.trim()) {
-      toast.error("Choose a download folder first");
+      toast.error(tr("Choose a download folder first"));
       return;
     }
 
@@ -657,7 +658,7 @@ export const useSftpStore = create<SftpStore>()((set, get) => ({
         get().handleProgress(pending);
       }
     } catch (error) {
-      toast.error(`Could not download ${entry.name}`, {
+      toast.error(tr("Could not download {name}", { name: entry.name }), {
         description: errorMessage(error),
       });
     }
@@ -667,7 +668,7 @@ export const useSftpStore = create<SftpStore>()((set, get) => ({
     try {
       await ipc.transferCancel(transferId);
     } catch (error) {
-      toast.error("Could not cancel transfer", {
+      toast.error(tr("Could not cancel transfer"), {
         description: errorMessage(error),
       });
     }
@@ -734,7 +735,7 @@ export const useSftpStore = create<SftpStore>()((set, get) => ({
     }
 
     if (event.state === "failed") {
-      toast.error("Transfer failed", {
+      toast.error(tr("Transfer failed"), {
         description: event.message?.trim() || existing.name,
       });
     }

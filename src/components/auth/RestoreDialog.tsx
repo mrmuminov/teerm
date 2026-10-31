@@ -117,7 +117,7 @@ export function RestoreDialog({
             className="min-w-0 flex-1 truncate font-mono text-[10.5px] text-muted-foreground"
             title={path ?? undefined}
           >
-            {path ?? "No file selected"}
+            {path ?? t("No file selected")}
           </span>
           <Button
             variant="outline"

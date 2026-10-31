@@ -1,8 +1,12 @@
 import { useSettingsStore } from "@/stores/settings";
-import ru from "@/locales/ru";
-import uz from "@/locales/uz";
-
-export type Language = "en" | "uz" | "ru";
+import {
+  normalizeLanguage,
+  setActiveLanguage,
+  translate,
+  tr,
+  type Language,
+  type Params,
+} from "@/lib/translate";
 
 export const LANGUAGES: { value: Language; label: string }[] = [
   { value: "en", label: "English" },
@@ -10,38 +14,8 @@ export const LANGUAGES: { value: Language; label: string }[] = [
   { value: "ru", label: "Русский" },
 ];
 
-type Dictionary = Record<string, string>;
-type Params = Record<string, string | number>;
-
-const DICTIONARIES: Record<Language, Dictionary | null> = {
-  en: null,
-  uz,
-  ru,
-};
-
-export function normalizeLanguage(value: string | undefined): Language {
-  return value === "uz" || value === "ru" ? value : "en";
-}
-
-/**
- * Translates an English source string. The English text is the key, so a
- * string without a translation simply stays English. `{name}` placeholders
- * are filled from `params`.
- */
-export function translate(
-  language: Language,
-  text: string,
-  params?: Params,
-): string {
-  const translated = DICTIONARIES[language]?.[text] ?? text;
-  if (!params) {
-    return translated;
-  }
-
-  return translated.replace(/\{(\w+)\}/g, (placeholder, name: string) =>
-    name in params ? String(params[name]) : placeholder,
-  );
-}
+export { normalizeLanguage, translate, tr };
+export type { Language };
 
 export type Translate = (text: string, params?: Params) => string;
 
@@ -53,11 +27,11 @@ export function useT(): Translate {
   return (text, params) => translate(resolved, text, params);
 }
 
-/** Translator for code outside React, such as store toasts. */
-export function currentT(): Translate {
-  const language = normalizeLanguage(
-    useSettingsStore.getState().settings?.language,
-  );
+/** Keeps the non-React translator in step with the saved language. */
+export function useLanguageSync(): void {
+  const language = useSettingsStore((state) => state.settings?.language);
+  const resolved = normalizeLanguage(language);
 
-  return (text, params) => translate(language, text, params);
+  // Set during render so children translate with the new language at once.
+  setActiveLanguage(resolved);
 }

@@ -26,6 +26,7 @@ import { useInventoryStore } from "@/stores/inventory";
 import { useSettingsStore } from "@/stores/settings";
 import { useSftpStore } from "@/stores/sftp";
 import { useUiStore } from "@/stores/ui";
+import { tr } from "@/lib/translate";
 
 export type SessionStatus =
   | "connecting"
@@ -190,7 +191,7 @@ export const useSessionsStore = create<SessionsStore>()((set, get) => {
             ),
             dialog: state.dialog?.tabId === tab.id ? null : state.dialog,
           }));
-          toast.error("Host key rejected", { description: message });
+          toast.error(tr("Host key rejected"), { description: message });
           return;
         }
 
@@ -247,7 +248,7 @@ export const useSessionsStore = create<SessionsStore>()((set, get) => {
       ),
       dialog: state.dialog?.tabId === tab.id ? null : state.dialog,
     }));
-    toast.error("Could not open session", { description: message });
+    toast.error(tr("Could not open session"), { description: message });
   }
 
   async function runAttempt(
@@ -559,7 +560,7 @@ export const useSessionsStore = create<SessionsStore>()((set, get) => {
               ...item,
               sshSessionId: null,
               status: wasConnected ? "disconnected" : "error",
-              message: "Connection cancelled",
+              message: tr("Connection cancelled"),
             };
           }),
           dialog: state.dialog?.tabId === dialog.tabId ? null : state.dialog,
@@ -582,7 +583,7 @@ export const useSessionsStore = create<SessionsStore>()((set, get) => {
             ...item,
             sshSessionId: null,
             status: wasConnected ? "disconnected" : "error",
-            message: "Connection cancelled",
+            message: tr("Connection cancelled"),
           };
         }),
         dialog: state.dialog?.tabId === dialog.tabId ? null : state.dialog,
@@ -609,7 +610,7 @@ export const useSessionsStore = create<SessionsStore>()((set, get) => {
                   ...item,
                   sshSessionId: null,
                   status: "error",
-                  message: "Authentication cancelled",
+                  message: tr("Authentication cancelled"),
                 }
               : item,
           ),

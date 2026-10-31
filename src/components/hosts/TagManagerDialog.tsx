@@ -70,7 +70,7 @@ export function TagManagerDialog({
       return;
     }
 
-    toast.success(editing ? "Tag updated" : "Tag created");
+    toast.success(editing ? t("Tag updated") : t("Tag created"));
     reset();
   }
 
@@ -107,7 +107,7 @@ export function TagManagerDialog({
           <form onSubmit={handleSubmit} className="flex items-end gap-2">
             <div className="grid flex-1 gap-1.5">
               <Label htmlFor="tag-name">
-                {editing ? "Rename tag" : "New tag"}
+                {editing ? t("Rename tag") : t("New tag")}
               </Label>
               <Input
                 id="tag-name"
@@ -134,7 +134,7 @@ export function TagManagerDialog({
               ) : editing ? null : (
                 <Plus data-icon="inline-start" />
               )}
-              {editing ? "Save" : "Add"}
+              {editing ? t("Save") : t("Add")}
             </Button>
             {editing && (
               <Button
@@ -172,7 +172,7 @@ export function TagManagerDialog({
                   <Button
                     variant="ghost"
                     size="icon-xs"
-                    aria-label={`Rename ${tag.name}`}
+                    aria-label={t("Rename {name}", { name: tag.name })}
                     onClick={() => startEdit(tag)}
                   >
                     <Pencil />
@@ -180,7 +180,7 @@ export function TagManagerDialog({
                   <Button
                     variant="ghost"
                     size="icon-xs"
-                    aria-label={`Delete ${tag.name}`}
+                    aria-label={t("Delete {name}", { name: tag.name })}
                     onClick={() => setDeleting(tag)}
                     className="text-muted-foreground hover:text-destructive"
                   >
@@ -196,7 +196,7 @@ export function TagManagerDialog({
       <ConfirmDialog
         open={deleting !== null}
         onOpenChange={(next) => !next && setDeleting(null)}
-        title={`Delete tag "${deleting?.name ?? ""}"?`}
+        title={t("Delete tag \"{name}\"?", { name: deleting?.name ?? "" })}
         description={t("The tag is removed from every Host. Hosts themselves are untouched.")}
         confirmLabel={t("Delete tag")}
         destructive

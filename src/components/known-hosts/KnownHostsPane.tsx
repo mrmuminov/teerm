@@ -112,7 +112,7 @@ export function KnownHostsPane() {
                 <Button
                   variant="ghost"
                   size="icon-sm"
-                  aria-label={`Forget ${known.address}`}
+                  aria-label={t("Forget {address}", { address: known.address })}
                   onClick={() => setDeleting(known)}
                   className="text-muted-foreground hover:text-destructive"
                 >
@@ -130,7 +130,7 @@ export function KnownHostsPane() {
       <ConfirmDialog
         open={deleting !== null}
         onOpenChange={(open) => !open && setDeleting(null)}
-        title={`Forget ${deleting?.address ?? "this host"}?`}
+        title={t("Forget {host}?", { host: deleting?.address ?? "this host" })}
         description={t("The next connection will ask you to trust this server again.")}
         confirmLabel={t("Forget")}
         destructive

@@ -1,5 +1,7 @@
 import { invoke } from "@tauri-apps/api/core";
 
+import { tr, translateBackendMessage } from "@/lib/translate";
+
 export type VaultStatus = {
   exists: boolean;
   unlocked: boolean;
@@ -248,7 +250,7 @@ export function isAppError(value: unknown): value is AppError {
 
 export function errorMessage(value: unknown): string {
   if (isAppError(value)) {
-    return value.message;
+    return translateBackendMessage(value.message);
   }
   if (value instanceof Error) {
     return value.message;
@@ -256,7 +258,7 @@ export function errorMessage(value: unknown): string {
   if (typeof value === "string") {
     return value;
   }
-  return "Something went wrong. Please try again.";
+  return tr("Something went wrong. Please try again.");
 }
 
 export const ipc = {

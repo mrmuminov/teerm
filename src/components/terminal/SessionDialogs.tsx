@@ -94,6 +94,7 @@ function FingerprintBlock({
   value: string;
   danger?: boolean;
 }) {
+  const t = useT();
   return (
     <div className="space-y-1">
       <p className="text-[9.5px] font-medium tracking-[0.12em] text-muted-foreground uppercase">
@@ -107,7 +108,7 @@ function FingerprintBlock({
             : "border-border/60 bg-background/60 text-foreground/90",
         )}
       >
-        {value || "Unknown"}
+        {value || t("Unknown")}
       </p>
     </div>
   );
@@ -152,7 +153,7 @@ function PasswordDialogContent({ dialog }: { dialog: PasswordDialogState }) {
           onEnter={submit}
           autoFocus
           disabled={dialog.busy}
-          placeholder={`Password for ${dialog.username}`}
+          placeholder={t("Password for {username}", { username: dialog.username })}
         />
 
         {dialog.error && (
@@ -181,7 +182,7 @@ function PasswordDialogContent({ dialog }: { dialog: PasswordDialogState }) {
           ) : (
             <KeyRound data-icon="inline-start" />
           )}
-          {dialog.busy ? "Connecting…" : "Connect"}
+          {dialog.busy ? t("Connecting…") : t("Connect")}
         </Button>
       </DialogFooter>
     </>
@@ -208,12 +209,12 @@ function HostKeyDialogContent({ dialog }: { dialog: HostKeyDialogState }) {
         </DialogIcon>
         <div className="min-w-0 flex-1 space-y-1">
           <DialogTitle>
-            {changed ? "Host key changed" : "Unrecognized host key"}
+            {changed ? t("Host key changed") : t("Unrecognized host key")}
           </DialogTitle>
           <DialogDescription>
             {changed
-              ? "Verify this change before connecting to the server."
-              : "Trust this server only after checking its fingerprint."}
+              ? t("Verify this change before connecting to the server.")
+              : t("Trust this server only after checking its fingerprint.")}
           </DialogDescription>
         </div>
       </DialogHeader>
@@ -243,8 +244,8 @@ function HostKeyDialogContent({ dialog }: { dialog: HostKeyDialogState }) {
         </p>
         <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
           {changed
-            ? "This can happen when a server is reinstalled, but it can also mean someone is intercepting the connection. Only replace the key if you know why it changed."
-            : "Compare this fingerprint with the one provided by the server administrator through a separate, trusted channel."}
+            ? t("This can happen when a server is reinstalled, but it can also mean someone is intercepting the connection. Only replace the key if you know why it changed.")
+            : t("Compare this fingerprint with the one provided by the server administrator through a separate, trusted channel.")}
         </p>
       </div>
 
@@ -264,7 +265,7 @@ function HostKeyDialogContent({ dialog }: { dialog: HostKeyDialogState }) {
           />
         )}
         <FingerprintBlock
-          label={changed ? "New fingerprint" : "Fingerprint"}
+          label={changed ? t("New fingerprint") : t("Fingerprint")}
           value={dialog.fingerprint}
           danger={changed}
         />
@@ -290,10 +291,10 @@ function HostKeyDialogContent({ dialog }: { dialog: HostKeyDialogState }) {
             <ShieldCheck data-icon="inline-start" />
           )}
           {dialog.busy
-            ? "Connecting…"
+            ? t("Connecting…")
             : changed
-              ? "Replace & Connect"
-              : "Trust & Connect"}
+              ? t("Replace & Connect")
+              : t("Trust & Connect")}
         </Button>
       </DialogFooter>
     </>
@@ -346,11 +347,11 @@ function KeyboardInteractiveContent({
         </DialogIcon>
         <div className="min-w-0 flex-1 space-y-1">
           <DialogTitle>
-            {dialog.name.trim() || "Authentication required"}
+            {dialog.name.trim() || t("Authentication required")}
           </DialogTitle>
           <DialogDescription>
             {dialog.instructions.trim() ||
-              `Additional verification requested by ${dialog.label}.`}
+              t("Additional verification requested by {label}.", { label: dialog.label })}
           </DialogDescription>
         </div>
       </DialogHeader>
@@ -367,7 +368,7 @@ function KeyboardInteractiveContent({
           return (
             <div key={id} className="grid gap-1.5">
               <Label htmlFor={id}>
-                {prompt.prompt.trim() || `Response ${index + 1}`}
+                {prompt.prompt.trim() || t("Response {value}", { value: index + 1 })}
               </Label>
               <Input
                 id={id}
@@ -405,7 +406,7 @@ function KeyboardInteractiveContent({
           ) : (
             <KeyRound data-icon="inline-start" />
           )}
-          {dialog.busy ? "Verifying…" : "Continue"}
+          {dialog.busy ? t("Verifying…") : t("Continue")}
         </Button>
       </DialogFooter>
     </form>

@@ -235,7 +235,7 @@ export function HostSheet() {
       return;
     }
 
-    toast.success(host ? "Host updated" : "Host created");
+    toast.success(host ? t("Host updated") : t("Host created"));
     selectHost(result.value.id);
     closeHostSheet();
   }
@@ -279,11 +279,11 @@ export function HostSheet() {
       <Sheet open={sheet.open} onOpenChange={(open) => !open && closeHostSheet()}>
         <SheetContent className="w-full gap-0 p-0 sm:max-w-[460px]">
           <SheetHeader className="border-b border-border/70 px-5 py-4">
-            <SheetTitle>{isEditing ? "Edit Host" : "New Host"}</SheetTitle>
+            <SheetTitle>{isEditing ? t("Edit Host") : t("New Host")}</SheetTitle>
             <SheetDescription>
               {isEditing
-                ? "Secrets stay inside the encrypted Vault."
-                : "Save a connection profile. You can connect once the SSH engine lands."}
+                ? t("Secrets stay inside the encrypted Vault.")
+                : t("Save a connection profile. You can connect once the SSH engine lands.")}
             </SheetDescription>
           </SheetHeader>
 
@@ -406,8 +406,8 @@ export function HostSheet() {
                     onChange={(event) => patch({ password: event.target.value })}
                     placeholder={
                       host?.has_password
-                        ? "Stored — leave blank to keep"
-                        : "Optional, stored encrypted"
+                        ? t("Stored — leave blank to keep")
+                        : t("Optional, stored encrypted")
                     }
                     autoComplete="new-password"
                     disabled={form.clearPassword}
@@ -534,7 +534,7 @@ export function HostSheet() {
                       data-icon="inline-start"
                     />
                   )}
-                  {isEditing ? "Save changes" : "Create Host"}
+                  {isEditing ? t("Save changes") : t("Create Host")}
                 </Button>
               </div>
             </SheetFooter>
@@ -545,7 +545,7 @@ export function HostSheet() {
       <ConfirmDialog
         open={confirmDelete}
         onOpenChange={setConfirmDelete}
-        title={`Delete ${host?.label ?? "this Host"}?`}
+        title={t("Delete {name}?", { name: host?.label ?? t("this Host") })}
         description={t("Its Port Forwards are removed too. The record is hidden from the UI and its stored password is wiped from the Vault.")}
         confirmLabel={t("Delete Host")}
         destructive

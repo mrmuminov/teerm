@@ -241,7 +241,7 @@ export function HostDetailPane({ host }: { host: Host }) {
       <ConfirmDialog
         open={confirmDelete}
         onOpenChange={setConfirmDelete}
-        title={`Delete ${host.label}?`}
+        title={t("Delete {label}?", { label: host.label })}
         description={t("Its Port Forwards are removed too, and the stored password is wiped.")}
         confirmLabel={t("Delete Host")}
         destructive

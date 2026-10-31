@@ -7,6 +7,7 @@ import { UnlockScreen } from "@/components/auth/UnlockScreen";
 import { AppShell } from "@/components/layout/AppShell";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { useLanguageSync } from "@/lib/i18n";
 import { useThemeSync } from "@/lib/theme";
 import { useSettingsStore } from "@/stores/settings";
 import { useVaultStore } from "@/stores/vault";
@@ -17,6 +18,7 @@ function App() {
   const init = useVaultStore((state) => state.init);
   const loadSettings = useSettingsStore((state) => state.load);
   const theme = useThemeSync();
+  useLanguageSync();
 
   useEffect(() => {
     void init();

@@ -129,10 +129,10 @@ export function ImportDialog({
       );
       await useInventoryStore.getState().load(true);
       toast.success(
-        result.mode === "replace" ? "Vault replaced" : "Import complete",
+        result.mode === "replace" ? t("Vault replaced") : t("Import complete"),
         {
           description: result.backup_path
-            ? `Previous Vault saved to ${result.backup_path}`
+            ? t("Previous Vault saved to {backup_path}", { backup_path: result.backup_path })
             : undefined,
         },
       );
@@ -158,7 +158,7 @@ export function ImportDialog({
             className="min-w-0 flex-1 truncate font-mono text-[10.5px] text-muted-foreground"
             title={path ?? undefined}
           >
-            {path ?? "No file selected"}
+            {path ?? t("No file selected")}
           </span>
           <Button
             variant="outline"
@@ -217,8 +217,8 @@ export function ImportDialog({
 
             <p className="text-[11px] text-muted-foreground">
               {preview.includes_secrets
-                ? "This export includes Secrets."
-                : "This export has no Secrets, so imported Hosts and Keys will need them added again."}
+                ? t("This export includes Secrets.")
+                : t("This export has no Secrets, so imported Hosts and Keys will need them added again.")}
             </p>
 
             <div className="grid gap-2">
@@ -235,8 +235,8 @@ export function ImportDialog({
                 title={t("Replace")}
                 description={
                   preview.can_replace
-                    ? "Swap this Vault’s contents for the file. The current Vault is backed up first."
-                    : "Only a full export can replace a Vault."
+                    ? t("Swap this Vault’s contents for the file. The current Vault is backed up first.")
+                    : t("Only a full export can replace a Vault.")
                 }
                 onSelect={() => setMode("replace")}
               />
@@ -271,7 +271,7 @@ export function ImportDialog({
               {busy && (
                 <Loader2 className="animate-spin" data-icon="inline-start" />
               )}
-              {mode === "replace" ? "Replace Vault" : "Merge"}
+              {mode === "replace" ? t("Replace Vault") : t("Merge")}
             </Button>
           )}
         </DialogFooter>

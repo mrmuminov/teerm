@@ -200,7 +200,7 @@ function FileRow({
             type="button"
             variant="ghost"
             size="icon-xs"
-            aria-label={`Rename ${entry.name}`}
+            aria-label={t("Rename {name}", { name: entry.name })}
             title={t("Rename")}
             onClick={(event) => {
               event.stopPropagation();
@@ -213,7 +213,7 @@ function FileRow({
             type="button"
             variant="ghost"
             size="icon-xs"
-            aria-label={`Delete ${entry.name}`}
+            aria-label={t("Delete {name}", { name: entry.name })}
             title={t("Delete")}
             onClick={(event) => {
               event.stopPropagation();
@@ -228,7 +228,7 @@ function FileRow({
               type="button"
               variant="ghost"
               size="icon-xs"
-              aria-label={`Download ${entry.name}`}
+              aria-label={t("Download {name}", { name: entry.name })}
               title={t("Download")}
               onClick={(event) => {
                 event.stopPropagation();
@@ -253,6 +253,7 @@ function TransferRow({
   onCancel: () => void;
   onDismiss: () => void;
 }) {
+  const t = useT();
   const percent = transferPercent(transfer);
   const running = transfer.state === "running";
   const tone =
@@ -280,9 +281,9 @@ function TransferRow({
         </span>
         <span className="shrink-0 font-mono text-[9px] text-muted-foreground tabular-nums">
           {transfer.state === "failed"
-            ? "Failed"
+            ? t("Failed")
             : transfer.state === "cancelled"
-              ? "Cancelled"
+              ? t("Cancelled")
               : `${percent}%`}
         </span>
         <Button
@@ -290,9 +291,9 @@ function TransferRow({
           variant="ghost"
           size="icon-xs"
           aria-label={
-            running ? `Cancel ${transfer.name}` : `Dismiss ${transfer.name}`
+            running ? t("Cancel {name}", { name: transfer.name }) : t("Dismiss {name}", { name: transfer.name })
           }
-          title={running ? "Cancel transfer" : "Dismiss"}
+          title={running ? t("Cancel transfer") : t("Dismiss")}
           onClick={running ? onCancel : onDismiss}
           className="size-5 text-muted-foreground hover:text-foreground"
         >
@@ -570,7 +571,7 @@ export function SftpPanel({ tab }: { tab: SessionTab }) {
           toast.error(t("Could not save download folder"), {
             description:
               useSettingsStore.getState().error ??
-              "The download will use the selected folder anyway.",
+              t("The download will use the selected folder anyway."),
           });
         }
       } catch (reason) {
@@ -853,8 +854,8 @@ export function SftpPanel({ tab }: { tab: SessionTab }) {
                     <Folder className="size-5 text-muted-foreground/45" />
                     <p className="text-[10.5px] text-muted-foreground">
                       {entries.length === 0
-                        ? "This folder is empty"
-                        : "No visible files"}
+                        ? t("This folder is empty")
+                        : t("No visible files")}
                     </p>
                     {entries.length > 0 ? (
                       <p className="max-w-[220px] text-[9.5px] leading-relaxed text-muted-foreground/70">

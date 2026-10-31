@@ -42,6 +42,7 @@ function RailButton({
   active: boolean;
   onClick: () => void;
 }) {
+  const t = useT();
   const Icon = item.icon;
 
   return (
@@ -50,7 +51,7 @@ function RailButton({
         <button
           type="button"
           onClick={onClick}
-          aria-label={item.label}
+          aria-label={t(item.label)}
           aria-current={active ? "page" : undefined}
           className={cn(
             "group relative flex size-9 items-center justify-center rounded-lg text-muted-foreground transition-colors outline-none",
@@ -65,7 +66,7 @@ function RailButton({
         </button>
       </TooltipTrigger>
       <TooltipContent side="right" sideOffset={8}>
-        {item.label}
+        {t(item.label)}
         {item.shortcut && (
           <span className="ml-1.5 text-muted-foreground">⌘{item.shortcut}</span>
         )}

@@ -9,6 +9,7 @@ import {
   type ForwardState,
   type ForwardStatus,
 } from "@/lib/ipc";
+import { tr } from "@/lib/translate";
 
 export type ForwardRuntime = {
   state: ForwardState;
@@ -61,7 +62,7 @@ export const useForwardsStore = create<ForwardsStore>((set) => ({
     try {
       await ipc.forwardStart(sessionId, forwardId);
     } catch (error) {
-      toast.error(`Could not start the port forward: ${errorMessage(error)}`);
+      toast.error(tr("Could not start the port forward: {error}", { error: errorMessage(error) }));
     }
   },
 
@@ -69,7 +70,7 @@ export const useForwardsStore = create<ForwardsStore>((set) => ({
     try {
       await ipc.forwardStop(sessionId, forwardId);
     } catch (error) {
-      toast.error(`Could not stop the port forward: ${errorMessage(error)}`);
+      toast.error(tr("Could not stop the port forward: {error}", { error: errorMessage(error) }));
     }
   },
 }));
@@ -82,7 +83,7 @@ export function useForwardEventBridge(): void {
     void listenForwardStatus((event) => {
       useForwardsStore.getState().handleStatus(event);
       if (event.state === "failed" && event.message) {
-        toast.error(`Port forward failed: ${event.message}`);
+        toast.error(tr("Port forward failed: {message}", { message: event.message }));
       }
     })
       .then((dispose) => {

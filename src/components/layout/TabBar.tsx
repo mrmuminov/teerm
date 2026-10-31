@@ -148,7 +148,7 @@ export function TabBar() {
               </button>
               <button
                 type="button"
-                aria-label={`Close ${tab.label}`}
+                aria-label={t("Close {label}", { label: tab.label })}
                 onClick={() => void closeSession(tab.id)}
                 className="mr-1 rounded p-0.5 text-muted-foreground transition-colors hover:bg-sidebar-accent hover:text-foreground"
               >
