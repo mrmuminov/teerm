@@ -14,12 +14,20 @@ type VaultStore = {
   status: VaultStatus | null;
   busy: boolean;
   error: string | null;
+  /**
+   * The Recovery Phrase of a Vault that was just created. It is shown once
+   * and held only until the user confirms they wrote it down.
+   */
+  recoveryPhrase: string | null;
   init: () => Promise<void>;
   create: (password: string) => Promise<void>;
   unlock: (password: string) => Promise<void>;
   lock: () => Promise<void>;
   /** Re-reads the status, e.g. after the Recovery Phrase was set up. */
   refreshStatus: () => Promise<void>;
+  /** Shows the Recovery Phrase of a freshly created Vault. */
+  showRecoveryPhrase: (phrase: string) => void;
+  dismissRecoveryPhrase: () => void;
   clearError: () => void;
 };
 
@@ -36,6 +44,7 @@ export const useVaultStore = create<VaultStore>()((set) => ({
   status: null,
   busy: false,
   error: null,
+  recoveryPhrase: null,
 
   init: async () => {
     set({ phase: "loading", error: null });
@@ -59,9 +68,10 @@ export const useVaultStore = create<VaultStore>()((set) => ({
     set({ busy: true, error: null });
 
     try {
-      await ipc.vaultCreate(password);
+      const recoveryPhrase = await ipc.vaultCreate(password);
       set({
         busy: false,
+        recoveryPhrase,
         phase: "unlocked",
         status: await readStatus({
           exists: true,
@@ -116,6 +126,10 @@ export const useVaultStore = create<VaultStore>()((set) => ({
       set({ status: await readStatus(current) });
     }
   },
+
+  showRecoveryPhrase: (phrase) => set({ recoveryPhrase: phrase }),
+
+  dismissRecoveryPhrase: () => set({ recoveryPhrase: null }),
 
   clearError: () => set({ error: null }),
 }));

@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import { BootScreen } from "@/components/auth/BootScreen";
 import { ErrorScreen } from "@/components/auth/ErrorScreen";
 import { OnboardingScreen } from "@/components/auth/OnboardingScreen";
+import { RecoveryPhraseScreen } from "@/components/auth/RecoveryPhraseScreen";
 import { UnlockScreen } from "@/components/auth/UnlockScreen";
 import { AppShell } from "@/components/layout/AppShell";
 import { Toaster } from "@/components/ui/sonner";
@@ -15,6 +16,7 @@ import { useVaultStore } from "@/stores/vault";
 function App() {
   const phase = useVaultStore((state) => state.phase);
   const error = useVaultStore((state) => state.error);
+  const recoveryPhrase = useVaultStore((state) => state.recoveryPhrase);
   const init = useVaultStore((state) => state.init);
   const loadSettings = useSettingsStore((state) => state.load);
   const theme = useThemeSync();
@@ -31,7 +33,10 @@ function App() {
       {phase === "loading" && <BootScreen />}
       {phase === "onboarding" && <OnboardingScreen />}
       {phase === "locked" && <UnlockScreen />}
-      {phase === "unlocked" && <AppShell />}
+      {phase === "unlocked" && recoveryPhrase && (
+        <RecoveryPhraseScreen phrase={recoveryPhrase} />
+      )}
+      {phase === "unlocked" && !recoveryPhrase && <AppShell />}
       {phase === "error" && (
         <ErrorScreen message={error} onRetry={() => void init()} />
       )}

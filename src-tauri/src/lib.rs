@@ -29,7 +29,6 @@ pub fn run() {
             commands::vault_unlock,
             commands::vault_lock,
             commands::vault_change_password,
-            commands::vault_generate_phrase,
             commands::vault_enable_recovery,
             commands::vault_disable_recovery,
             commands::vault_recover,

@@ -3,7 +3,6 @@ import { open as openFileDialog } from "@tauri-apps/plugin-dialog";
 import { Loader2 } from "lucide-react";
 
 import { PasswordField } from "@/components/auth/PasswordField";
-import { PhraseGenerator } from "@/components/auth/PhraseGenerator";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -88,7 +87,12 @@ export function RestoreDialog({
     setBusy(true);
     setError(null);
     try {
-      await ipc.vaultCreateFromExport(path, passphrase || null, password);
+      const recoveryPhrase = await ipc.vaultCreateFromExport(
+        path,
+        passphrase || null,
+        password,
+      );
+      useVaultStore.getState().showRecoveryPhrase(recoveryPhrase);
       setBusy(false);
       await useVaultStore.getState().init();
     } catch (caught) {
@@ -160,13 +164,6 @@ export function RestoreDialog({
           autoComplete="new-password"
           disabled={busy}
           onEnter={() => void submit()}
-        />
-        <PhraseGenerator
-          disabled={busy}
-          onGenerated={(generated) => {
-            setPassword(generated);
-            setConfirmation(generated);
-          }}
         />
         {mismatch && (
           <p className="text-[11px] text-destructive">

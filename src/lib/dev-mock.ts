@@ -80,6 +80,14 @@ const MOCK_WORDS = [
   "advice", "aerobic", "affair", "afford", "afraid", "again", "age", "agent",
 ];
 
+function mockRecoveryPhrase(): string {
+  return Array.from(
+    { length: 24 },
+    (_, index) =>
+      MOCK_WORDS[(index * 5 + Math.floor(Math.random() * 90)) % MOCK_WORDS.length],
+  ).join(" ");
+}
+
 const MOCK_KEY_TYPE = "ssh-ed25519";
 const MOCK_PUBLIC_KEY =
   "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAITeermMockHostKey";
@@ -1064,7 +1072,8 @@ export function installDevMock() {
         case "vault_create":
           exists = true;
           unlocked = true;
-          return null;
+          recoveryEnabled = true;
+          return mockRecoveryPhrase();
         case "vault_unlock":
           unlocked = true;
           return null;
@@ -1077,7 +1086,10 @@ export function installDevMock() {
         case "session_latency":
           return 18 + Math.round(Math.random() * 14);
         case "vault_create_from_export":
-          return null;
+          exists = true;
+          unlocked = true;
+          recoveryEnabled = true;
+          return mockRecoveryPhrase();
         case "vault_export":
           return null;
         case "vault_import_preview": {
@@ -1106,15 +1118,9 @@ export function installDevMock() {
             merge: null,
             backup_path: args?.mode === "replace" ? "/mock/vault.bak" : null,
           };
-        case "vault_generate_phrase":
-          return Array.from({ length: Number(args?.words ?? 12) }, (_, index) =>
-            MOCK_WORDS[(index * 7 + Math.floor(Math.random() * 90)) % MOCK_WORDS.length],
-          ).join(" ");
         case "vault_enable_recovery":
           recoveryEnabled = true;
-          return Array.from({ length: 24 }, (_, index) =>
-            MOCK_WORDS[(index * 5 + Math.floor(Math.random() * 90)) % MOCK_WORDS.length],
-          ).join(" ");
+          return mockRecoveryPhrase();
         case "vault_disable_recovery":
           recoveryEnabled = false;
           return null;

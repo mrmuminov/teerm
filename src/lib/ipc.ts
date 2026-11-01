@@ -307,15 +307,14 @@ export function errorMessage(value: unknown): string {
 
 export const ipc = {
   vaultStatus: () => invoke<VaultStatus>("vault_status"),
+  /** Creates the Vault; returns its Recovery Phrase, to be written down. */
   vaultCreate: (password: string) =>
-    invoke<void>("vault_create", { password }),
+    invoke<string>("vault_create", { password }),
   vaultUnlock: (password: string) =>
     invoke<void>("vault_unlock", { password }),
   vaultLock: () => invoke<void>("vault_lock"),
   vaultChangePassword: (current: string, next: string) =>
     invoke<void>("vault_change_password", { current, new: next }),
-  vaultGeneratePhrase: (words: 12 | 24) =>
-    invoke<string>("vault_generate_phrase", { words }),
   vaultEnableRecovery: (password: string) =>
     invoke<string>("vault_enable_recovery", { password }),
   vaultDisableRecovery: (password: string) =>
@@ -326,7 +325,8 @@ export const ipc = {
     path: string,
     passphrase: string | null,
     password: string,
-  ) => invoke<void>("vault_create_from_export", { path, passphrase, password }),
+  ) =>
+    invoke<string>("vault_create_from_export", { path, passphrase, password }),
   vaultExport: (path: string, mode: ExportMode, passphrase: string | null) =>
     invoke<void>("vault_export", { path, mode, passphrase }),
   vaultImportPreview: (path: string, passphrase: string | null) =>

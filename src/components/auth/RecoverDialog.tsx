@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Loader2 } from "lucide-react";
 
 import { PasswordField } from "@/components/auth/PasswordField";
-import { PhraseGenerator } from "@/components/auth/PhraseGenerator";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -118,13 +117,6 @@ export function RecoverDialog({
             {t("The passwords do not match.")}
           </p>
         )}
-        <PhraseGenerator
-          disabled={busy}
-          onGenerated={(generated) => {
-            setPassword(generated);
-            setConfirmation(generated);
-          }}
-        />
 
         {error && <p className="text-[11px] text-destructive">{error}</p>}
 

@@ -33,8 +33,9 @@ pub fn vault_status(state: State<'_, AppState>) -> Result<VaultStatus, AppError>
 }
 
 #[tauri::command]
-pub fn vault_create(state: State<'_, AppState>, password: String) -> Result<(), AppError> {
+pub fn vault_create(state: State<'_, AppState>, password: String) -> Result<String, AppError> {
     let mut vault = state.vault.lock().map_err(|_| vault_lock_error())?;
+    // The Recovery Phrase is returned once, to be written down.
     vault.create(&password)
 }
 
@@ -176,19 +177,13 @@ pub async fn vault_create_from_export(
     path: PathBuf,
     passphrase: Option<String>,
     password: String,
-) -> Result<(), AppError> {
+) -> Result<String, AppError> {
     let incoming = open_export(path, passphrase).await?;
 
     let mut vault = state.vault.lock().map_err(|_| vault_lock_error())?;
-    vault.create(&password)?;
+    let recovery_phrase = vault.create(&password)?;
     vault.mutate(|payload| Ok(transfer::merge(payload, &incoming.payload, incoming.includes_secrets)))?;
-    Ok(())
-}
-
-/// A random BIP39 word phrase to use as a Master Password.
-#[tauri::command]
-pub fn vault_generate_phrase(words: usize) -> Result<String, AppError> {
-    crate::vault::phrase::generate_password_phrase(words)
+    Ok(recovery_phrase)
 }
 
 /// Sets up the Recovery Phrase and returns it; it is shown once and never
